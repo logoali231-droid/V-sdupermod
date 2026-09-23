@@ -13,6 +13,13 @@ public class DuperMod {
     public static final String NAME = "Block Duper Mod";
     public static final String VERSION = "1.0";
 
+    @EventHandler
+    public void preInit(FMLPreInitializationEvent event) {
+        // Cria ou lê o ficheiro config/dupermod.cfg na pasta da instância
+        File configFile = new File(event.getModConfigurationDirectory(), "dupermod.cfg");
+        DuperConfig.init(configFile);
+    }
+
     @Mod.Instance
     public static DuperMod instance;
 

@@ -34,10 +34,10 @@ public class EntityMiner extends EntityAllyBase {
     public void onUpdate() {
         super.onUpdate();
 
-        if (this.world.isRemote || this.isRecovering) return;
+        if (this.worldObj.isRemote || this.isRecovering) return;
 
         workTimer++;
-        if (workTimer >= 30) { // A cada 1.5 segundos executa a rotina
+        if (workTimer >= 30) {
             workTimer = 0;
             scanAndMineVein();
         }
@@ -51,20 +51,16 @@ public class EntityMiner extends EntityAllyBase {
             for (int y = -4; y <= 4; y++) {
                 for (int z = -radius; z <= radius; z++) {
                     BlockPos targetPos = pos.add(x, y, z);
-                    IBlockState state = world.getBlockState(targetPos);
+                    IBlockState state = worldObj.getBlockState(targetPos);
                     Block block = state.getBlock();
 
                     if (isGeolosysOrOre(state, block)) {
-
-                        // SE FOR UMA AMOSTRA DE SUPERFÍCIE (SAMPLE):
-                        // O Slime minera a amostra e escava uma coluna para baixo até encontrar a veia principal
                         if (isGeolosysSample(block)) {
-                            world.setBlockToAir(targetPos);
+                            worldObj.setBlockToAir(targetPos);
                             digVerticalShaft(targetPos.down());
                             return;
                         }
 
-                        // SE FOR MINÉRIO DE VEIA: Minera em cadeia (Veinminer de até 8 blocos por ciclo)
                         mineVeinChain(targetPos, state, block);
                         return;
                     }
@@ -73,9 +69,6 @@ public class EntityMiner extends EntityAllyBase {
         }
     }
 
-    /**
-     * Algoritmo de Busca em Largura (BFS) para minerar a veia conectada
-     */
     private void mineVeinChain(BlockPos startPos, IBlockState targetState, Block targetBlock) {
         Queue<BlockPos> toMine = new ArrayDeque<>();
         Set<BlockPos> visited = new HashSet<>();
@@ -84,27 +77,26 @@ public class EntityMiner extends EntityAllyBase {
         visited.add(startPos);
 
         int minedCount = 0;
-        int maxPerCycle = 4 + (this.getAllyLevel() * 2); // Nível 1: 6 blocos/ciclo | Nível 3: 10 blocos
+        int maxPerCycle = 4 + (this.getAllyLevel() * 2);
 
         while (!toMine.isEmpty() && minedCount < maxPerCycle) {
             BlockPos current = toMine.poll();
-            IBlockState state = world.getBlockState(current);
+            IBlockState state = worldObj.getBlockState(current);
 
             if (state.getBlock() == targetBlock) {
                 int fortune = hasFortuneUpgrade ? 2 : 0;
-                List<ItemStack> drops = targetBlock.getDrops(world, current, state, fortune);
-                world.setBlockToAir(current);
+                List<ItemStack> drops = targetBlock.getDrops(worldObj, current, state, fortune);
+                worldObj.setBlockToAir(current);
                 minedCount++;
 
                 for (ItemStack drop : drops) {
-                    if (drop.isEmpty()) continue;
+                    if (drop == null) continue;
 
-                    // Upgrade Smelt: Converte minérios/peças do Geolosys no produto final do forno
                     if (hasSmeltUpgrade) {
                         ItemStack smeltedResult = FurnaceRecipes.instance().getSmeltingResult(drop);
-                        if (!smeltedResult.isEmpty()) {
+                        if (smeltedResult != null) {
                             ItemStack resultCopy = smeltedResult.copy();
-                            resultCopy.setCount(drop.getCount());
+                            resultCopy.stackSize = drop.stackSize;
                             ItemHandlerHelper.insertItemStacked(this.inventory, resultCopy, false);
                             continue;
                         }
@@ -112,13 +104,16 @@ public class EntityMiner extends EntityAllyBase {
                     ItemHandlerHelper.insertItemStacked(this.inventory, drop, false);
                 }
 
-                // Procura blocos vizinhos adjacentes da mesma veia
-                for (BlockPos neighbor : BlockPos.getAllInBoxMutable(current.add(-1, -1, -1), current.add(1, 1, 1))) {
-                    BlockPos immutable = neighbor.toImmutable();
-                    if (!visited.contains(immutable)) {
-                        visited.add(immutable);
-                        if (world.getBlockState(immutable).getBlock() == targetBlock) {
-                            toMine.add(immutable);
+                for (int x = -1; x <= 1; x++) {
+                    for (int y = -1; y <= 1; y++) {
+                        for (int z = -1; z <= 1; z++) {
+                            BlockPos immutable = current.add(x, y, z);
+                            if (!visited.contains(immutable)) {
+                                visited.add(immutable);
+                                if (worldObj.getBlockState(immutable).getBlock() == targetBlock) {
+                                    toMine.add(immutable);
+                                }
+                            }
                         }
                     }
                 }
@@ -126,43 +121,31 @@ public class EntityMiner extends EntityAllyBase {
         }
     }
 
-    /**
-     * Se o Slime achar uma amostra no chão, ele escava um poço de 1x1 direto para baixo até achar a veia
-     */
     private void digVerticalShaft(BlockPos start) {
-        for (int i = 0; i < 25; i++) { // Procura até 25 blocos abaixo da amostra
+        for (int i = 0; i < 25; i++) {
             BlockPos check = start.down(i);
-            IBlockState state = world.getBlockState(check);
+            IBlockState state = worldObj.getBlockState(check);
             Block block = state.getBlock();
 
             if (isGeolosysOrOre(state, block) && !isGeolosysSample(block)) {
-                // Achou a veia escondida lá embaixo!
                 mineVeinChain(check, state, block);
                 break;
             }
         }
     }
 
-    /**
-     * Identifica Amostras do Geolosys (ex: geolosys:ore_sample)
-     */
     private boolean isGeolosysSample(Block block) {
         String name = block.getRegistryName() != null ? block.getRegistryName().toString() : "";
         return name.contains("geolosys") && name.contains("sample");
     }
 
-    /**
-     * Suporte Universal a Minérios (Geolosys + OreDictionary)
-     */
     private boolean isGeolosysOrOre(IBlockState state, Block block) {
         String regName = block.getRegistryName() != null ? block.getRegistryName().toString() : "";
 
-        // Compatibilidade direta com Geolosys
         if (regName.contains("geolosys")) {
             return true;
         }
 
-        // OreDictionary Padrão
         ItemStack stack = new ItemStack(block, 1, block.getMetaFromState(state));
         int[] oreIDs = OreDictionary.getOreIDs(stack);
         for (int id : oreIDs) {
@@ -177,18 +160,18 @@ public class EntityMiner extends EntityAllyBase {
 
     @Override
     public boolean processInteract(EntityPlayer player, EnumHand hand, ItemStack stack) {
-        if (!stack.isEmpty() && !world.isRemote) {
+        if (stack != null && !worldObj.isRemote) {
             if (stack.getItem() == Items.GOLD_INGOT && !hasSmeltUpgrade) {
                 hasSmeltUpgrade = true;
-                if (!player.capabilities.isCreativeMode) stack.shrink(1);
-                player.sendMessage(new TextComponentString("§aUpgrade Aplicado: Auto-Fundição (Geolosys / Smelt Direct)!"));
+                if (!player.capabilities.isCreativeMode) stack.stackSize--;
+                player.addChatMessage(new TextComponentString("§aUpgrade Aplicado: Auto-Fundição (Geolosys / Smelt Direct)!"));
                 return true;
             }
 
             if (stack.getItem() == Items.DIAMOND && !hasFortuneUpgrade) {
                 hasFortuneUpgrade = true;
-                if (!player.capabilities.isCreativeMode) stack.shrink(1);
-                player.sendMessage(new TextComponentString("§aUpgrade Aplicado: Fortuna II!"));
+                if (!player.capabilities.isCreativeMode) stack.stackSize--;
+                player.addChatMessage(new TextComponentString("§aUpgrade Aplicado: Fortuna II!"));
                 return true;
             }
         }

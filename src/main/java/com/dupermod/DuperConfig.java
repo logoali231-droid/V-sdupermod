@@ -1,4 +1,4 @@
-package seu.pacote.aqui.config;
+package com.dupermod;
 
 import net.minecraftforge.common.config.Configuration;
 import java.io.File;

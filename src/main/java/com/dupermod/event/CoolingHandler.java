@@ -16,7 +16,7 @@ public class CoolingHandler {
 
     @SubscribeEvent
     public void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (!DuperConfig.enableCoolingArmor || event.phase != TickEvent.Phase.END || event.player.world.isRemote) return;
+        if (!DuperConfig.enableCoolingArmor || event.phase != TickEvent.Phase.END || event.player.worldObj.isRemote) return;
 
         timer++;
         if (timer >= DuperConfig.coolingIntervalTicks) {

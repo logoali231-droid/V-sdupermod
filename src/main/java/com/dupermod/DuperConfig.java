@@ -45,7 +45,7 @@ public class DuperConfig {
     }
 
     @SubscribeEvent
-    public void onConfigChanged(ConfigChangedEvent.OnConfigChangeEvent event) {
+    public void onConfigChanged(ConfigChangedEvent.OnConfigChangedEvent event) {
         if (event.getModID().equalsIgnoreCase(DuperMod.MODID)) {
             loadConfig();
         }

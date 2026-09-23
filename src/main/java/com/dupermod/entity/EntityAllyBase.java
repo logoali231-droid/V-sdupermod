@@ -1,8 +1,8 @@
 package com.dupermod.entity;
 
+import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.ai.*;
-import net.minecraft.entity.monster.EntitySlime;
 import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
@@ -15,7 +15,7 @@ import net.minecraftforge.items.ItemStackHandler;
 
 import java.util.UUID;
 
-public abstract class EntityAllyBase extends EntitySlime {
+public abstract class EntityAllyBase extends EntityCreature {
 
     private UUID ownerId;
     protected boolean isRecovering = false;
@@ -23,7 +23,7 @@ public abstract class EntityAllyBase extends EntitySlime {
 
     public EntityAllyBase(World worldIn) {
         super(worldIn);
-        this.setSlimeSize(2, true); // Tamanho médio de Slime
+        this.setSize(0.8F, 0.8F);
     }
 
     @Override

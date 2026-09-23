@@ -2,6 +2,7 @@ package com.dupermod.item;
 
 import com.dupermod.entity.EntityAllyBase;
 import com.dupermod.entity.EntityFarmer;
+import com.dupermod.entity.EntityFighter;
 import com.dupermod.entity.EntityLumberjack;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
@@ -25,15 +26,17 @@ public class ItemAllySummoner extends Item {
     }
 
     @Override
-    public EnumActionResult onItemUse(EntityPlayer player, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+    public EnumActionResult onItemUse(ItemStack stack, EntityPlayer player, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
         if (!worldIn.isRemote) {
             BlockPos spawnPos = pos.offset(facing);
             EntityAllyBase ally;
 
             if ("lumberjack".equals(allyType)) {
                 ally = new EntityLumberjack(worldIn);
-            } else {
+            } else if ("farmer".equals(allyType)) {
                 ally = new EntityFarmer(worldIn);
+            } else {
+                ally = new EntityFighter(worldIn);
             }
 
             ally.setPosition(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5);
@@ -41,7 +44,7 @@ public class ItemAllySummoner extends Item {
             worldIn.spawnEntityInWorld(ally);
 
             if (!player.capabilities.isCreativeMode) {
-                player.getHeldItem(hand).stackSize--;
+                stack.stackSize--;
             }
         }
         return EnumActionResult.SUCCESS;

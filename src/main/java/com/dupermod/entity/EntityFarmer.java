@@ -15,7 +15,7 @@ public class EntityFarmer extends EntityAllyBase {
 
     public EntityFarmer(World worldIn) {
         super(worldIn);
-        this.setSlimeSize(1, true); // Slime pequeno para diferenciar o Agricultor do Lenhador
+        this.setSize(0.5F, 0.5F); // Slime menor para o agricultor
     }
 
     @Override

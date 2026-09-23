@@ -29,6 +29,12 @@ public class ModItems {
     // Invocadores de Aliados
     public static Item summonerLumberjack;
     public static Item summonerFarmer;
+    public static Item summonerFighter;
+
+    // Upgrades do Lenhador
+    public static Item upgradeLogMultiplier;
+    public static Item upgradeCharcoal;
+    public static Item upgradeSpeed;
 
     public static void init() {
         // Upgrade de Arrefecimento
@@ -61,9 +67,20 @@ public class ModItems {
         // Invocadores dos Aliados (Slimes)
         summonerLumberjack = new ItemAllySummoner("lumberjack");
         summonerFarmer = new ItemAllySummoner("farmer");
+        summonerFighter = new ItemAllySummoner("fighter");
 
         registerItem(summonerLumberjack, "summoner_lumberjack");
         registerItem(summonerFarmer, "summoner_farmer");
+        registerItem(summonerFighter, "summoner_fighter");
+
+        // Upgrades do Lenhador
+        upgradeLogMultiplier = new Item().setUnlocalizedName("upgrade_log_multiplier").setRegistryName("upgrade_log_multiplier").setCreativeTab(CreativeTabs.MISC);
+        upgradeCharcoal = new Item().setUnlocalizedName("upgrade_charcoal").setRegistryName("upgrade_charcoal").setCreativeTab(CreativeTabs.MISC);
+        upgradeSpeed = new Item().setUnlocalizedName("upgrade_speed").setRegistryName("upgrade_speed").setCreativeTab(CreativeTabs.MISC);
+
+        registerItem(upgradeLogMultiplier, "upgrade_log_multiplier");
+        registerItem(upgradeCharcoal, "upgrade_charcoal");
+        registerItem(upgradeSpeed, "upgrade_speed");
     }
 
     private static void registerItem(Item item, String name) {
@@ -78,22 +95,45 @@ public class ModItems {
                 'S', Items.SNOWBALL, 'G', Blocks.ICE, 'R', Items.REDSTONE
         );
 
-        // Receita do Anel de Acessibilidade (Ouro + Bússola)
+        // Receita do Anel de Acessibilidade
         GameRegistry.addRecipe(new ItemStack(accessibilityRing),
                 " G ", "GCG", " G ",
                 'G', Items.GOLD_INGOT, 'C', Items.COMPASS
         );
 
-        // Receita do Invocador Lenhador (Machado de Ferro + Bola de Slime)
+        // Receitas dos Invocadores
         GameRegistry.addRecipe(new ItemStack(summonerLumberjack),
                 " A ", " S ", "   ",
                 'A', Items.IRON_AXE, 'S', Items.SLIME_BALL
         );
 
-        // Receita do Invocador Agricultor (Enxada de Ferro + Bola de Slime)
         GameRegistry.addRecipe(new ItemStack(summonerFarmer),
                 " H ", " S ", "   ",
                 'H', Items.IRON_HOE, 'S', Items.SLIME_BALL
+        );
+
+        GameRegistry.addRecipe(new ItemStack(summonerFighter),
+                " S ", " X ", "   ",
+                'S', Items.IRON_SWORD, 'X', Items.SLIME_BALL
+        );
+
+        // Receitas dos Upgrades do Lenhador
+        // 1. Multiplicador: Diamante + Bola de Slime + Machado de Ouro
+        GameRegistry.addRecipe(new ItemStack(upgradeLogMultiplier),
+                " D ", " S ", " A ",
+                'D', Items.DIAMOND, 'S', Items.SLIME_BALL, 'A', Items.GOLDEN_AXE
+        );
+
+        // 2. Carvão: Forno + Bola de Slime + Carvão
+        GameRegistry.addRecipe(new ItemStack(upgradeCharcoal),
+                " C ", " S ", " F ",
+                'C', Items.COAL, 'S', Items.SLIME_BALL, 'F', Blocks.FURNACE
+        );
+
+        // 3. Velocidade: Açúcar + Bola de Slime + Pena
+        GameRegistry.addRecipe(new ItemStack(upgradeSpeed),
+                " S ", " X ", " P ",
+                'S', Items.SUGAR, 'X', Items.SLIME_BALL, 'P', Items.FEATHER
         );
 
         // Receitas das Armaduras de Arrefecimento

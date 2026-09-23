@@ -9,6 +9,8 @@ import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 
 public class ModItems {
 
@@ -19,8 +21,15 @@ public class ModItems {
     public static Item coolingBoots;
 
     public static void init() {
-        // Upgrade de Arrefecimento
-        coolingUpgrade = new Item().setUnlocalizedName("cooling_upgrade").setRegistryName("cooling_upgrade").setCreativeTab(CreativeTabs.MISC);
+        // Upgrade de Arrefecimento com brilho de encantamento
+        coolingUpgrade = new Item() {
+            @Override
+            @SideOnly(Side.CLIENT)
+            public boolean hasEffect(ItemStack stack) {
+                return true;
+            }
+        }.setUnlocalizedName("cooling_upgrade").setRegistryName("cooling_upgrade").setCreativeTab(CreativeTabs.MISC);
+
         GameRegistry.register(coolingUpgrade);
         DuperMod.proxy.registerItemRenderer(coolingUpgrade, 0, "cooling_upgrade");
 
@@ -42,13 +51,11 @@ public class ModItems {
     }
 
     public static void registerRecipes() {
-        // Receita do Upgrade (Gelo + Bola de Neve + Redstone)
         GameRegistry.addRecipe(new ItemStack(coolingUpgrade),
                 "SGS", "GRG", "SGS",
                 'S', Items.SNOWBALL, 'G', Blocks.ICE, 'R', Items.REDSTONE
         );
 
-        // Receitas da Armadura de Arrefecimento (Peça de Couro + Upgrade)
         GameRegistry.addShapelessRecipe(new ItemStack(coolingHelmet), Items.LEATHER_HELMET, coolingUpgrade);
         GameRegistry.addShapelessRecipe(new ItemStack(coolingChestplate), Items.LEATHER_CHESTPLATE, coolingUpgrade);
         GameRegistry.addShapelessRecipe(new ItemStack(coolingLeggings), Items.LEATHER_LEGGINGS, coolingUpgrade);

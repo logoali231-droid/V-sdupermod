@@ -5,6 +5,7 @@ import com.dupermod.entity.EntityFarmer;
 import com.dupermod.entity.EntityFighter;
 import com.dupermod.entity.EntityLumberjack;
 import com.dupermod.entity.EntityCooler;
+import com.dupermod.entity.EntityMiner;
 import net.minecraftforge.fml.common.registry.EntityRegistry;
 
 public class ModEntities {

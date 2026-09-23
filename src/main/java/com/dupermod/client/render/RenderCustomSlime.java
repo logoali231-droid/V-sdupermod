@@ -5,6 +5,7 @@ import com.dupermod.entity.EntityCooler;
 import com.dupermod.entity.EntityFarmer;
 import com.dupermod.entity.EntityFighter;
 import com.dupermod.entity.EntityLumberjack;
+import com.dupermod.entity.EntityMiner;
 import net.minecraft.client.model.ModelSlime;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.entity.RenderLiving;
@@ -37,6 +38,8 @@ public class RenderCustomSlime extends RenderLiving<EntityAllyBase> {
             GlStateManager.color(0.95F, 0.98F, 1.0F, 1.0F); // Branco/Gelo
         } else if (entity instanceof EntityMiner) {
             GlStateManager.color(0.5F, 0.1F, 0.8F, 1.0F); // Roxo Minerador
+        } else if (entity instanceof EntityMiner) {
+            GlStateManager.color(0.5F, 0.1F, 0.8F, 1.0F); // Roxo Ametista / Minerador
         }
     }
 

@@ -17,6 +17,8 @@ import com.dupermod.entity.EntityCooler;
 
 public class ModItems {
 
+
+
     // Arrefecimento
     public static Item coolingUpgrade;
     public static Item coolingHelmet;
@@ -31,6 +33,7 @@ public class ModItems {
     public static Item summonerLumberjack;
     public static Item summonerFarmer;
     public static Item summonerFighter;
+    public static Item summonerMiner;
 
     // Upgrades do Lenhador
     public static Item upgradeLogMultiplier;
@@ -152,6 +155,10 @@ public class ModItems {
         GameRegistry.addRecipe(new ItemStack(summonerMiner),
                 " P ", " S ", "   ",
                 'P', Items.IRON_PICKAXE, 'S', Items.SLIME_BALL
+        );
+        GameRegistry.addRecipe(new ItemStack(summonerMiner),
+                " P ", " S ", "   ",
+                'P', net.minecraft.init.Items.IRON_PICKAXE, 'S', net.minecraft.init.Items.SLIME_BALL
         );
 
         // Receitas das Armaduras de Arrefecimento

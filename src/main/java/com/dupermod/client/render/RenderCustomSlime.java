@@ -35,6 +35,8 @@ public class RenderCustomSlime extends RenderLiving<EntityAllyBase> {
             GlStateManager.color(0.85F, 0.15F, 0.15F, 1.0F); // Vermelho
         } else if (entity instanceof EntityCooler) {
             GlStateManager.color(0.95F, 0.98F, 1.0F, 1.0F); // Branco/Gelo
+        } else if (entity instanceof EntityMiner) {
+            GlStateManager.color(0.5F, 0.1F, 0.8F, 1.0F); // Roxo Minerador
         }
     }
 

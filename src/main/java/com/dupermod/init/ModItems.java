@@ -13,6 +13,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import com.dupermod.entity.EntityCooler;
 
 public class ModItems {
 
@@ -53,7 +54,10 @@ public class ModItems {
         // Anel de Acessibilidade
         accessibilityRing = new ItemAccessibilityRing();
         registerItem(accessibilityRing, "accessibility_ring");
-
+        //minerslime
+        summonerMiner = new ItemAllySummoner("miner");
+        registerItem(summonerMiner, "summoner_miner");
+        //coolerslime
         summonerCooler = new ItemAllySummoner("cooler");
         registerItem(summonerCooler, "summoner_cooler");
 
@@ -143,6 +147,11 @@ public class ModItems {
         GameRegistry.addRecipe(new ItemStack(summonerCooler),
                 " I ", " S ", "   ",
                 'I', Blocks.PACKED_ICE, 'S', Items.SLIME_BALL
+        );
+
+        GameRegistry.addRecipe(new ItemStack(summonerMiner),
+                " P ", " S ", "   ",
+                'P', Items.IRON_PICKAXE, 'S', Items.SLIME_BALL
         );
 
         // Receitas das Armaduras de Arrefecimento

@@ -40,6 +40,8 @@ public class ItemAllySummoner extends Item {
                 ally = new EntityCooler(worldIn);
             } else {
                 ally = new EntityFighter(worldIn);
+            }else if ("miner".equals(allyType)) {
+                ally = new EntityMiner(worldIn);
             }
 
 

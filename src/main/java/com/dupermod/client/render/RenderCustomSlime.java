@@ -1,6 +1,7 @@
 package com.dupermod.client.render;
 
 import com.dupermod.entity.EntityAllyBase;
+import com.dupermod.entity.EntityCooler;
 import com.dupermod.entity.EntityFarmer;
 import com.dupermod.entity.EntityFighter;
 import com.dupermod.entity.EntityLumberjack;
@@ -22,15 +23,18 @@ public class RenderCustomSlime extends RenderLiving<EntityAllyBase> {
     protected void preRenderCallback(EntityAllyBase entity, float partialTickTime) {
         super.preRenderCallback(entity, partialTickTime);
 
+        // Escala proporcional ao Nível de Fusão
+        float scale = 0.8F + (entity.getAllyLevel() - 1) * 0.4F;
+        GlStateManager.scale(scale, scale, scale);
+
         if (entity instanceof EntityLumberjack) {
-            // Castanho / Madeira
-            GlStateManager.color(0.55F, 0.27F, 0.07F, 1.0F);
+            GlStateManager.color(0.55F, 0.27F, 0.07F, 1.0F); // Castanho
         } else if (entity instanceof EntityFarmer) {
-            // Amarelo / Trigo
-            GlStateManager.color(1.0F, 0.84F, 0.0F, 1.0F);
+            GlStateManager.color(1.0F, 0.84F, 0.0F, 1.0F); // Amarelo
         } else if (entity instanceof EntityFighter) {
-            // Vermelho / Guerreiro
-            GlStateManager.color(0.85F, 0.15F, 0.15F, 1.0F);
+            GlStateManager.color(0.85F, 0.15F, 0.15F, 1.0F); // Vermelho
+        } else if (entity instanceof EntityCooler) {
+            GlStateManager.color(0.95F, 0.98F, 1.0F, 1.0F); // Branco/Gelo
         }
     }
 

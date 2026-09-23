@@ -23,6 +23,7 @@ public class ItemAllySummoner extends Item {
         this.setUnlocalizedName("summoner_" + allyType);
         this.setRegistryName("summoner_" + allyType);
         this.setCreativeTab(CreativeTabs.MISC);
+
     }
 
     @Override
@@ -35,9 +36,13 @@ public class ItemAllySummoner extends Item {
                 ally = new EntityLumberjack(worldIn);
             } else if ("farmer".equals(allyType)) {
                 ally = new EntityFarmer(worldIn);
+            }  else if ("cooler".equals(allyType)) {
+                ally = new EntityCooler(worldIn);
             } else {
                 ally = new EntityFighter(worldIn);
             }
+
+
 
             ally.setPosition(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5);
             ally.setOwner(player);

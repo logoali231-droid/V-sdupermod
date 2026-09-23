@@ -48,7 +48,7 @@ public class EntityLumberjack extends EntityAllyBase {
 
     private void findAndCutTree() {
         BlockPos pos = new BlockPos(this);
-        int radius = 8;
+        int radius = 8 + (this.getAllyLevel() - 1) * 3;
 
         for (int x = -radius; x <= radius; x++) {
             for (int z = -radius; z <= radius; z++) {

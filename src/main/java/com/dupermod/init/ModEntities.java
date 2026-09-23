@@ -13,5 +13,6 @@ public class ModEntities {
         EntityRegistry.registerModEntity(EntityLumberjack.class, "LumberjackSlime", id++, DuperMod.instance, 64, 1, true, 0x00FF00, 0x8B4513);
         EntityRegistry.registerModEntity(EntityFarmer.class, "FarmerSlime", id++, DuperMod.instance, 64, 1, true, 0x00FF00, 0xFFFF00);
         EntityRegistry.registerModEntity(EntityFighter.class, "FighterSlime", id++, DuperMod.instance, 64, 1, true, 0x00FF00, 0xFF0000);
+        EntityRegistry.registerModEntity(EntityCooler.class, "CoolerSlime", id++, DuperMod.instance, 64, 1, true, 0xFFFFFF, 0xE0FFFF);
     }
 }

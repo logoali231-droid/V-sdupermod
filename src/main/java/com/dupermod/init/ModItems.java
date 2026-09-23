@@ -35,6 +35,7 @@ public class ModItems {
     public static Item upgradeLogMultiplier;
     public static Item upgradeCharcoal;
     public static Item upgradeSpeed;
+    public static Item summonerCooler;
 
     public static void init() {
         // Upgrade de Arrefecimento
@@ -53,6 +54,9 @@ public class ModItems {
         accessibilityRing = new ItemAccessibilityRing();
         registerItem(accessibilityRing, "accessibility_ring");
 
+        summonerCooler = new ItemAllySummoner("cooler");
+        registerItem(summonerCooler, "summoner_cooler");
+
         // Armaduras de Arrefecimento
         coolingHelmet = new ItemCoolingArmor(EntityEquipmentSlot.HEAD, "cooling_helmet");
         coolingChestplate = new ItemCoolingArmor(EntityEquipmentSlot.CHEST, "cooling_chestplate");
@@ -68,6 +72,7 @@ public class ModItems {
         summonerLumberjack = new ItemAllySummoner("lumberjack");
         summonerFarmer = new ItemAllySummoner("farmer");
         summonerFighter = new ItemAllySummoner("fighter");
+
 
         registerItem(summonerLumberjack, "summoner_lumberjack");
         registerItem(summonerFarmer, "summoner_farmer");
@@ -134,6 +139,10 @@ public class ModItems {
         GameRegistry.addRecipe(new ItemStack(upgradeSpeed),
                 " S ", " X ", " P ",
                 'S', Items.SUGAR, 'X', Items.SLIME_BALL, 'P', Items.FEATHER
+        );
+        GameRegistry.addRecipe(new ItemStack(summonerCooler),
+                " I ", " S ", "   ",
+                'I', Blocks.PACKED_ICE, 'S', Items.SLIME_BALL
         );
 
         // Receitas das Armaduras de Arrefecimento

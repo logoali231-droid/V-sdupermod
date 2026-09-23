@@ -1,6 +1,5 @@
 package com.dupermod.entity;
 
-import com.dupermod.init.ModItems;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
@@ -15,8 +14,11 @@ import net.minecraft.world.World;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.oredict.OreDictionary;
 
-import java.util.ArrayList;
+import java.util.ArrayDeque;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Queue;
+import java.util.Set;
 
 public class EntityMiner extends EntityAllyBase {
 
@@ -32,49 +34,39 @@ public class EntityMiner extends EntityAllyBase {
     public void onUpdate() {
         super.onUpdate();
 
-        if (this.worldObj.isRemote || this.isRecovering) return;
+        if (this.world.isRemote || this.isRecovering) return;
 
         workTimer++;
-        if (workTimer >= 30) { // Procura minérios a cada 1.5 segundos
+        if (workTimer >= 30) { // A cada 1.5 segundos executa a rotina
             workTimer = 0;
-            findAndMineOre();
+            scanAndMineVein();
         }
     }
 
-    private void findAndMineOre() {
+    private void scanAndMineVein() {
         BlockPos pos = new BlockPos(this);
-        int radius = 5 + (this.getAllyLevel() - 1) * 3; // Raio escala com a fusão
+        int radius = 6 + (this.getAllyLevel() - 1) * 3;
 
         for (int x = -radius; x <= radius; x++) {
-            for (int y = -3; y <= 3; y++) {
+            for (int y = -4; y <= 4; y++) {
                 for (int z = -radius; z <= radius; z++) {
                     BlockPos targetPos = pos.add(x, y, z);
-                    IBlockState state = worldObj.getBlockState(targetPos);
+                    IBlockState state = world.getBlockState(targetPos);
                     Block block = state.getBlock();
 
-                    if (isOreBlock(state, block)) {
-                        int fortune = hasFortuneUpgrade ? 2 : 0;
-                        List<ItemStack> drops = block.getDrops(worldObj, targetPos, state, fortune);
-                        worldObj.setBlockToAir(targetPos);
+                    if (isGeolosysOrOre(state, block)) {
 
-                        for (ItemStack drop : drops) {
-                            if (drop == null) continue;
-
-                            // UPGRADE: Smelt Direct (Auto-Fundição de Minérios no Forno Vanilla/Modded)
-                            if (hasSmeltUpgrade) {
-                                ItemStack smeltedResult = FurnaceRecipes.instance().getSmeltingResult(drop);
-                                if (smeltedResult != null) {
-                                    ItemStack finalResult = smeltedResult.copy();
-                                    finalResult.stackSize = drop.stackSize;
-                                    ItemHandlerHelper.insertItemStacked(this.inventory, finalResult, false);
-                                    continue;
-                                }
-                            }
-
-                            // Coloca o drop normal/fortuna no inventário do Slime
-                            ItemHandlerHelper.insertItemStacked(this.inventory, drop, false);
+                        // SE FOR UMA AMOSTRA DE SUPERFÍCIE (SAMPLE):
+                        // O Slime minera a amostra e escava uma coluna para baixo até encontrar a veia principal
+                        if (isGeolosysSample(block)) {
+                            world.setBlockToAir(targetPos);
+                            digVerticalShaft(targetPos.down());
+                            return;
                         }
-                        return; // Minera 1 bloco por ciclo
+
+                        // SE FOR MINÉRIO DE VEIA: Minera em cadeia (Veinminer de até 8 blocos por ciclo)
+                        mineVeinChain(targetPos, state, block);
+                        return;
                     }
                 }
             }
@@ -82,40 +74,121 @@ public class EntityMiner extends EntityAllyBase {
     }
 
     /**
-     * Verifica se o bloco é um minério usando o OreDictionary (Compatibilidade Universal de Mods)
+     * Algoritmo de Busca em Largura (BFS) para minerar a veia conectada
      */
-    private boolean isOreBlock(IBlockState state, Block block) {
+    private void mineVeinChain(BlockPos startPos, IBlockState targetState, Block targetBlock) {
+        Queue<BlockPos> toMine = new ArrayDeque<>();
+        Set<BlockPos> visited = new HashSet<>();
+
+        toMine.add(startPos);
+        visited.add(startPos);
+
+        int minedCount = 0;
+        int maxPerCycle = 4 + (this.getAllyLevel() * 2); // Nível 1: 6 blocos/ciclo | Nível 3: 10 blocos
+
+        while (!toMine.isEmpty() && minedCount < maxPerCycle) {
+            BlockPos current = toMine.poll();
+            IBlockState state = world.getBlockState(current);
+
+            if (state.getBlock() == targetBlock) {
+                int fortune = hasFortuneUpgrade ? 2 : 0;
+                List<ItemStack> drops = targetBlock.getDrops(world, current, state, fortune);
+                world.setBlockToAir(current);
+                minedCount++;
+
+                for (ItemStack drop : drops) {
+                    if (drop.isEmpty()) continue;
+
+                    // Upgrade Smelt: Converte minérios/peças do Geolosys no produto final do forno
+                    if (hasSmeltUpgrade) {
+                        ItemStack smeltedResult = FurnaceRecipes.instance().getSmeltingResult(drop);
+                        if (!smeltedResult.isEmpty()) {
+                            ItemStack resultCopy = smeltedResult.copy();
+                            resultCopy.setCount(drop.getCount());
+                            ItemHandlerHelper.insertItemStacked(this.inventory, resultCopy, false);
+                            continue;
+                        }
+                    }
+                    ItemHandlerHelper.insertItemStacked(this.inventory, drop, false);
+                }
+
+                // Procura blocos vizinhos adjacentes da mesma veia
+                for (BlockPos neighbor : BlockPos.getAllInBoxMutable(current.add(-1, -1, -1), current.add(1, 1, 1))) {
+                    BlockPos immutable = neighbor.toImmutable();
+                    if (!visited.contains(immutable)) {
+                        visited.add(immutable);
+                        if (world.getBlockState(immutable).getBlock() == targetBlock) {
+                            toMine.add(immutable);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Se o Slime achar uma amostra no chão, ele escava um poço de 1x1 direto para baixo até achar a veia
+     */
+    private void digVerticalShaft(BlockPos start) {
+        for (int i = 0; i < 25; i++) { // Procura até 25 blocos abaixo da amostra
+            BlockPos check = start.down(i);
+            IBlockState state = world.getBlockState(check);
+            Block block = state.getBlock();
+
+            if (isGeolosysOrOre(state, block) && !isGeolosysSample(block)) {
+                // Achou a veia escondida lá embaixo!
+                mineVeinChain(check, state, block);
+                break;
+            }
+        }
+    }
+
+    /**
+     * Identifica Amostras do Geolosys (ex: geolosys:ore_sample)
+     */
+    private boolean isGeolosysSample(Block block) {
+        String name = block.getRegistryName() != null ? block.getRegistryName().toString() : "";
+        return name.contains("geolosys") && name.contains("sample");
+    }
+
+    /**
+     * Suporte Universal a Minérios (Geolosys + OreDictionary)
+     */
+    private boolean isGeolosysOrOre(IBlockState state, Block block) {
+        String regName = block.getRegistryName() != null ? block.getRegistryName().toString() : "";
+
+        // Compatibilidade direta com Geolosys
+        if (regName.contains("geolosys")) {
+            return true;
+        }
+
+        // OreDictionary Padrão
         ItemStack stack = new ItemStack(block, 1, block.getMetaFromState(state));
         int[] oreIDs = OreDictionary.getOreIDs(stack);
-
         for (int id : oreIDs) {
             String oreName = OreDictionary.getOreName(id);
-            if (oreName.startsWith("ore") || oreName.startsWith("denseore")) {
+            if (oreName.startsWith("ore") || oreName.startsWith("cluster")) {
                 return true;
             }
         }
 
-        // Fallback para blocos com nomes personalizados de modpacks (ex: gravel ores)
-        String unlocalizedName = block.getUnlocalizedName().toLowerCase();
-        return unlocalizedName.contains("ore") || unlocalizedName.contains("gravel_ore");
+        return false;
     }
 
     @Override
     public boolean processInteract(EntityPlayer player, EnumHand hand, ItemStack stack) {
-        if (stack != null && !worldObj.isRemote) {
-            // Aplica Upgrade de Smelt Direct (com Barra de Ouro ou item de upgrade custom)
+        if (!stack.isEmpty() && !world.isRemote) {
             if (stack.getItem() == Items.GOLD_INGOT && !hasSmeltUpgrade) {
                 hasSmeltUpgrade = true;
-                if (!player.capabilities.isCreativeMode) stack.stackSize--;
-                player.addChatMessage(new TextComponentString("§aUpgrade Aplicado: Auto-Fundição (Smelt Direct)!"));
+                if (!player.capabilities.isCreativeMode) stack.shrink(1);
+                player.sendMessage(new TextComponentString("§aUpgrade Aplicado: Auto-Fundição (Geolosys / Smelt Direct)!"));
                 return true;
             }
 
-            // Aplica Upgrade de Fortune (com Diamante)
             if (stack.getItem() == Items.DIAMOND && !hasFortuneUpgrade) {
                 hasFortuneUpgrade = true;
-                if (!player.capabilities.isCreativeMode) stack.stackSize--;
-                player.addChatMessage(new TextComponentString("§aUpgrade Aplicado: Fortuna II!"));
+                if (!player.capabilities.isCreativeMode) stack.shrink(1);
+                player.sendMessage(new TextComponentString("§aUpgrade Aplicado: Fortuna II!"));
                 return true;
             }
         }

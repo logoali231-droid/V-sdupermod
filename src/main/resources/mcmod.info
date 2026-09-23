@@ -1,0 +1,16 @@
+[
+{
+  "modid": "dupermod",
+  "name": "Block Duper Mod",
+  "description": "Adds 5 tiers of block duplicators.",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["Developer"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]

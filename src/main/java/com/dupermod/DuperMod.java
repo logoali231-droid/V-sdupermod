@@ -1,7 +1,9 @@
 package com.dupermod;
 
+import com.dupermod.event.AccessibilityHandler;
 import com.dupermod.event.CoolingHandler;
 import com.dupermod.init.ModBlocks;
+import com.dupermod.init.ModEntities;
 import com.dupermod.init.ModItems;
 import com.dupermod.proxy.CommonProxy;
 import net.minecraftforge.common.MinecraftForge;
@@ -30,6 +32,7 @@ public class DuperMod {
         DuperConfig.init(configFile);
 
         ModItems.init();
+        ModEntities.init(); // Registo das entidades (Lumberjack & Farmer)
         proxy.preInit(event);
     }
 
@@ -41,6 +44,7 @@ public class DuperMod {
         // Registo dos Eventos
         MinecraftForge.EVENT_BUS.register(new DuperConfig());
         MinecraftForge.EVENT_BUS.register(new CoolingHandler());
+        MinecraftForge.EVENT_BUS.register(new AccessibilityHandler());
     }
 
     @Mod.EventHandler

@@ -15,7 +15,18 @@ public class DuperConfig {
 
     // Arrefecimento / Tough As Nails
     public static boolean enableCoolingArmor = true;
-    public static int coolingIntervalTicks = 40; // 2 segundos
+    public static int coolingIntervalTicks = 40;
+
+    // Acessibilidade Motora
+    public static boolean enableMagnet = true;
+    public static boolean enableAutoTool = true;
+    public static boolean enableAutoEat = true;
+    public static boolean enableStepAssist = true;
+
+    // Acessibilidade Visual
+    public static boolean enableNightVision = true;
+    public static boolean enableSonar = true;
+    public static boolean enableLightGrid = true;
 
     public static void init(File file) {
         config = new Configuration(file);
@@ -27,12 +38,23 @@ public class DuperConfig {
             config.load();
 
             // Categoria Geral
-            duplicationTicks = config.getInt("duplicationTicks", Configuration.CATEGORY_GENERAL, 100, 1, 1200, "Tempo em ticks para duplicar um item.");
+            duplicationTicks = config.getInt("duplicationTicks", Configuration.CATEGORY_GENERAL, 100, 1, 1200, "Tempo base em ticks para duplicar um item.");
             enableParticles = config.getBoolean("enableParticles", Configuration.CATEGORY_GENERAL, true, "Ativar efeitos de partículas nos duplicadores.");
 
             // Categoria Cooling
-            enableCoolingArmor = config.getBoolean("enableCoolingArmor", "cooling", true, "Ativar efeito de arrefecimento da armadura e upgrades.");
-            coolingIntervalTicks = config.getInt("coolingIntervalTicks", "cooling", 40, 10, 200, "Intervalo em ticks (20 ticks = 1s) para aplicar o arrefecimento.");
+            enableCoolingArmor = config.getBoolean("enableCoolingArmor", "cooling", true, "Ativar efeito de arrefecimento da armadura.");
+            coolingIntervalTicks = config.getInt("coolingIntervalTicks", "cooling", 40, 10, 200, "Intervalo em ticks para aplicar o arrefecimento.");
+
+            // Categoria Motor Accessibility
+            enableMagnet = config.getBoolean("enableMagnet", "motor_accessibility", true, "Atrai itens do chão num raio de 8 blocos.");
+            enableAutoTool = config.getBoolean("enableAutoTool", "motor_accessibility", true, "Troca para a ferramenta adequada automaticamente ao bater num bloco.");
+            enableAutoEat = config.getBoolean("enableAutoEat", "motor_accessibility", true, "Consome comida da hotbar quando a fome ou vida estiverem baixas.");
+            enableStepAssist = config.getBoolean("enableStepAssist", "motor_accessibility", true, "Permite subir blocos de 1 de altura sem pular.");
+
+            // Categoria Visual Accessibility
+            enableNightVision = config.getBoolean("enableNightVision", "visual_accessibility", true, "Aplica Visão Noturna contínua e sem partículas.");
+            enableSonar = config.getBoolean("enableSonar", "visual_accessibility", true, "Destaca minérios raros e mobs hostis ao redor com partículas.");
+            enableLightGrid = config.getBoolean("enableLightGrid", "visual_accessibility", true, "Exibe partículas em blocos onde mobs hostis podem nascer (luz <= 7).");
 
         } catch (Exception e) {
             System.err.println("Erro ao carregar as configurações do DuperMod!");

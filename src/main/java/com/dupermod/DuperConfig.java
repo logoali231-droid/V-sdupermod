@@ -1,36 +1,42 @@
 package com.dupermod;
 
-import net.minecraftforge.common.config.Configuration;
+import com.dupermod.proxy.CommonProxy;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.SidedProxy;
+import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import java.io.File;
 
-public class DuperConfig {
+@Mod(modid = DuperMod.MODID, name = DuperMod.NAME, version = DuperMod.VERSION)
+public class DuperMod {
+    public static final String MODID = "dupermod";
+    public static final String NAME = "Block Duper Mod";
+    public static final String VERSION = "1.0";
 
-    public static Configuration config;
+    @Mod.Instance
+    public static DuperMod instance;
 
-    // Opções configuráveis
-    public static int duplicationTicks = 100;
-    public static boolean enableParticles = true;
+    @SidedProxy(clientSide = "com.dupermod.proxy.ClientProxy", serverSide = "com.dupermod.proxy.CommonProxy")
+    public static CommonProxy proxy;
 
-    public static void init(File file) {
-        config = new Configuration(file);
-        loadConfig();
+    @Mod.EventHandler
+    public void preInit(FMLPreInitializationEvent event) {
+        // Inicializa o ficheiro de configuração do mod
+        File configFile = new File(event.getModConfigurationDirectory(), "dupermod.cfg");
+        DuperConfig.init(configFile);
+
+        // Passa para o proxy do lado do cliente/servidor
+        proxy.preInit(event);
     }
 
-    public static void loadConfig() {
-        try {
-            config.load();
+    @Mod.EventHandler
+    public void init(FMLInitializationEvent event) {
+        proxy.init(event);
+    }
 
-            // Definir categorias, propriedades e valores padrão
-            duplicationTicks = config.getInt("duplicationTicks", Configuration.CATEGORY_GENERAL, 100, 1, 1200, "Tempo em ticks para duplicar um item.");
-            enableParticles = config.getBoolean("enableParticles", Configuration.CATEGORY_GENERAL, true, "Ativar efeitos de partículas nos duplicadores.");
-
-        } catch (Exception e) {
-            System.err.println("Erro ao carregar o ficheiro de configuração do DuperMod!");
-            e.printStackTrace();
-        } finally {
-            if (config.hasChanged()) {
-                config.save();
-            }
-        }
+    @Mod.EventHandler
+    public void postInit(FMLPostInitializationEvent event) {
+        proxy.postInit(event);
     }
 }

@@ -1,6 +1,6 @@
 {
   "parent": "block/cube_all",
   "textures": {
-    "all": "dupermod:blocks/duplicator_tier_5"
+    "all": "dupermod:blocks/duplicator_tier_1"
   }
 }

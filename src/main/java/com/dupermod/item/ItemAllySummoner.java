@@ -1,9 +1,11 @@
 package com.dupermod.item;
 
 import com.dupermod.entity.EntityAllyBase;
+import com.dupermod.entity.EntityCooler;
 import com.dupermod.entity.EntityFarmer;
 import com.dupermod.entity.EntityFighter;
 import com.dupermod.entity.EntityLumberjack;
+import com.dupermod.entity.EntityMiner;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
@@ -23,7 +25,6 @@ public class ItemAllySummoner extends Item {
         this.setUnlocalizedName("summoner_" + allyType);
         this.setRegistryName("summoner_" + allyType);
         this.setCreativeTab(CreativeTabs.MISC);
-
     }
 
     @Override
@@ -36,15 +37,13 @@ public class ItemAllySummoner extends Item {
                 ally = new EntityLumberjack(worldIn);
             } else if ("farmer".equals(allyType)) {
                 ally = new EntityFarmer(worldIn);
-            }  else if ("cooler".equals(allyType)) {
+            } else if ("cooler".equals(allyType)) {
                 ally = new EntityCooler(worldIn);
+            } else if ("miner".equals(allyType)) {
+                ally = new EntityMiner(worldIn);
             } else {
                 ally = new EntityFighter(worldIn);
-            }else if ("miner".equals(allyType)) {
-                ally = new EntityMiner(worldIn);
             }
-
-
 
             ally.setPosition(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5);
             ally.setOwner(player);

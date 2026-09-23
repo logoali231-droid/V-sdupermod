@@ -1,24 +1,19 @@
 package com.dupermod;
 
 import com.dupermod.proxy.CommonProxy;
+import com.dupermod.config.DuperConfig;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import java.io.File;
 
 @Mod(modid = DuperMod.MODID, name = DuperMod.NAME, version = DuperMod.VERSION)
 public class DuperMod {
     public static final String MODID = "dupermod";
     public static final String NAME = "Block Duper Mod";
     public static final String VERSION = "1.0";
-
-    @EventHandler
-    public void preInit(FMLPreInitializationEvent event) {
-        // Cria ou lê o ficheiro config/dupermod.cfg na pasta da instância
-        File configFile = new File(event.getModConfigurationDirectory(), "dupermod.cfg");
-        DuperConfig.init(configFile);
-    }
 
     @Mod.Instance
     public static DuperMod instance;
@@ -28,6 +23,11 @@ public class DuperMod {
 
     @Mod.EventHandler
     public void preInit(FMLPreInitializationEvent event) {
+        // Inicializa o ficheiro de configuração do mod
+        File configFile = new File(event.getModConfigurationDirectory(), "dupermod.cfg");
+        DuperConfig.init(configFile);
+
+        // Passa para o proxy do lado do cliente/servidor
         proxy.preInit(event);
     }
 

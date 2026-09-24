@@ -27,6 +27,10 @@ import java.util.List;
 
 public class AccessibilityHandler {
 
+    private boolean hasRing(EntityPlayer player) {
+        return player.inventory.hasItemStack(new ItemStack(ModItems.accessibilityRing));
+    }
+
     @SubscribeEvent
     public void onPlayerTick(TickEvent.PlayerTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
@@ -34,24 +38,22 @@ public class AccessibilityHandler {
         EntityPlayer player = event.player;
         World world = player.worldObj;
 
-        // USAhasItem EM VEZ DE INSTANCIAR UM NOVO ItemStack A CADA TICK
-        boolean hasRing = player.inventory.hasItem(ModItems.accessibilityRing);
+        boolean ringEquipped = hasRing(player);
 
         // --- 1. ASSISTÊNCIA MOTORA ---
 
-        // Step Assist (Subir degraus automaticamente)
-        if (DuperConfig.enableStepAssist && hasRing) {
+        // Step Assist
+        if (DuperConfig.enableStepAssist && ringEquipped) {
             player.stepHeight = 1.25F;
         } else if (player.stepHeight == 1.25F) {
-            player.stepHeight = 0.6F; // Restaura o valor padrão do Vanilla
+            player.stepHeight = 0.6F;
         }
 
-        if (world.isRemote) return; // Apenas servidor para as lógicas abaixo
+        if (world.isRemote) return;
 
-        if (hasRing) {
-            // Magnet (Coleta Automática)
+        if (ringEquipped) {
+            // Magnet
             if (DuperConfig.enableMagnet) {
-                // Caixa de colisão centralizada 16x16x16 ao redor do jogador
                 AxisAlignedBB area = new AxisAlignedBB(
                         player.posX - 8.0D, player.posY - 8.0D, player.posZ - 8.0D,
                         player.posX + 8.0D, player.posY + 8.0D, player.posZ + 8.0D
@@ -64,7 +66,7 @@ public class AccessibilityHandler {
                 }
             }
 
-            // Consumo Automático de Comida (Auto-Eat)
+            // Auto-Eat
             if (DuperConfig.enableAutoEat) {
                 if (player.getFoodStats().needFood() && player.getFoodStats().getFoodLevel() <= 12) {
                     for (int i = 0; i < 9; i++) {
@@ -73,7 +75,6 @@ public class AccessibilityHandler {
                             ItemFood food = (ItemFood) stack.getItem();
                             player.getFoodStats().addStats(food.getHealAmount(stack), food.getSaturationModifier(stack));
 
-                            // Som de comer para feedback do jogador
                             world.playSound(null, player.posX, player.posY, player.posZ,
                                     SoundEvents.ENTITY_GENERIC_EAT, SoundCategory.PLAYERS, 0.5F, 1.0F);
 
@@ -89,7 +90,7 @@ public class AccessibilityHandler {
 
             // --- 2. ACESSIBILIDADE VISUAL ---
 
-            // Visão Noturna Contínua (Evita o efeito de piscar reaplicando apenas quando necessário)
+            // Visão Noturna
             if (DuperConfig.enableNightVision) {
                 PotionEffect currentEffect = player.getActivePotionEffect(MobEffects.NIGHT_VISION);
                 if (currentEffect == null || currentEffect.getDuration() <= 220) {
@@ -97,13 +98,11 @@ public class AccessibilityHandler {
                 }
             }
 
-            // Sonar & Grid de Spawn (Executado a cada 10 ticks usando o tick do jogador)
+            // Sonar & Grid de Spawn (Cada 10 ticks)
             if (player.ticksExisted % 10 == 0) {
-
                 if (world instanceof WorldServer) {
                     WorldServer ws = (WorldServer) world;
 
-                    // Sonar de Mobs Hostis
                     if (DuperConfig.enableSonar) {
                         AxisAlignedBB mobArea = new AxisAlignedBB(
                                 player.posX - 12.0D, player.posY - 6.0D, player.posZ - 12.0D,
@@ -117,7 +116,6 @@ public class AccessibilityHandler {
                         }
                     }
 
-                    // Grid de Spawn de Mobs (Luz <= 7)
                     if (DuperConfig.enableLightGrid) {
                         BlockPos playerPos = new BlockPos(player);
                         for (int x = -5; x <= 5; x++) {
@@ -139,16 +137,13 @@ public class AccessibilityHandler {
         }
     }
 
-    // Auto-Tool (Troca automática de ferramenta ao golpear bloco)
     @SubscribeEvent
     public void onLeftClickBlock(PlayerInteractEvent.LeftClickBlock event) {
         EntityPlayer player = event.getEntityPlayer();
         World world = event.getWorld();
 
         if (world.isRemote || !DuperConfig.enableAutoTool) return;
-
-        // USA hasItem EM VEZ DE INSTANCIAR NOVO ItemStack
-        if (!player.inventory.hasItem(ModItems.accessibilityRing)) return;
+        if (!hasRing(player)) return;
 
         IBlockState state = world.getBlockState(event.getPos());
         int bestSlot = -1;

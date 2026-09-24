@@ -181,8 +181,9 @@ public abstract class EntityAllyBase extends EntityCreature {
     }
 
     // --- INTERAÇÕES DO JOGADOR ---
+    // --- INTERAÇÕES DO JOGADOR ---
     @Override
-    public boolean processInitialInteract(EntityPlayer player, EnumHand hand, ItemStack stack) {
+    public boolean processInitialInteract(EntityPlayer player, ItemStack stack, EnumHand hand) {
         if (!this.worldObj.isRemote && hand == EnumHand.MAIN_HAND) {
 
             // 1. Vinculação / Desvinculação de Baú (Usando o Item de Baú)
@@ -207,12 +208,12 @@ public abstract class EntityAllyBase extends EntityCreature {
 
             // 2. Upgrade de Fusão / Tamanho (Usando Bloco de Slime)
             if (stack != null && stack.getItem() == Item.getItemFromBlock(Blocks.SLIME_BLOCK)) {
-                if (this.allyLevel < 3) {
+                if (this.getAllyLevel() < 3) {
                     this.allyLevel++;
                     this.updateAllySize();
 
                     // Aumenta vida máxima com a fusão
-                    double newMaxHealth = 20.0D + (allyLevel * 10.0D);
+                    double newMaxHealth = 20.0D + (getAllyLevel() * 10.0D);
                     this.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(newMaxHealth);
                     this.heal(10.0F);
 
@@ -222,7 +223,7 @@ public abstract class EntityAllyBase extends EntityCreature {
                             player.setHeldItem(hand, null);
                         }
                     }
-                    player.addChatMessage(new TextComponentString("§aFusão efetuada! Nível do Aliado: " + allyLevel));
+                    player.addChatMessage(new TextComponentString("§aFusão efetuada! Nível do Aliado: " + getAllyLevel()));
                 } else {
                     player.addChatMessage(new TextComponentString("§eEste aliado já atingiu o nível máximo de fusão (3)!"));
                 }
@@ -248,7 +249,7 @@ public abstract class EntityAllyBase extends EntityCreature {
             }
             return true;
         }
-        return super.processInitialInteract(player, hand, stack);
+        return super.processInitialInteract(player, stack, hand);
     }
 
     // --- PERSISTÊNCIA NBT ---

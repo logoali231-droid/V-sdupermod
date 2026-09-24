@@ -18,7 +18,8 @@ public class TileEntityDuplicator extends TileEntity implements ITickable {
     private int tier = 1;
     private int tickCount = 0;
 
-    public TileEntityDuplicator() {}
+    public TileEntityDuplicator() {
+    }
 
     public TileEntityDuplicator(int tier) {
         this.tier = tier;

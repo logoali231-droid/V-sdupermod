@@ -12,6 +12,7 @@ import net.minecraftforge.fml.common.SidedProxy;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+
 import java.io.File;
 
 @Mod(modid = DuperMod.MODID, name = DuperMod.NAME, version = DuperMod.VERSION, guiFactory = "com.dupermod.client.gui.DuperGuiFactory")

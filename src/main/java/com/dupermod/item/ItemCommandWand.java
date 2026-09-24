@@ -21,14 +21,6 @@ import java.util.List;
 
 public class ItemCommandWand extends Item {
 
-    public enum WandMode {
-        MOVE, SET_INPUT, SET_OUTPUT, SET_WORKAREA;
-
-        public WandMode next() {
-            return values()[(this.ordinal() + 1) % values().length];
-        }
-    }
-
     public ItemCommandWand() {
         this.setRegistryName("command_wand");
         this.setUnlocalizedName("command_wand");
@@ -140,5 +132,13 @@ public class ItemCommandWand extends Item {
         tooltip.add("§8- §eShift + Clique direito:§7 Alterna o modo");
         tooltip.add("§8- §eClique direito num bloco:§7 Salva a posição");
         tooltip.add("§8- §eClique num Slime:§7 Aplica o comando");
+    }
+
+    public enum WandMode {
+        MOVE, SET_INPUT, SET_OUTPUT, SET_WORKAREA;
+
+        public WandMode next() {
+            return values()[(this.ordinal() + 1) % values().length];
+        }
     }
 }

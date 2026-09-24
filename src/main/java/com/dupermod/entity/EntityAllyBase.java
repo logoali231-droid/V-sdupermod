@@ -28,17 +28,15 @@ import java.util.UUID;
 
 public abstract class EntityAllyBase extends EntityCreature {
 
-    private UUID ownerId;
-    protected boolean isRecovering = false;
     public ItemStackHandler inventory = new ItemStackHandler(18);
-
     public BlockPos inputPos = null;
     public BlockPos outputPos = null;
     public BlockPos workAreaCenter = null;
     public BlockPos forceMoveTarget = null;
-
+    protected boolean isRecovering = false;
     // Sistema de Baú e Nível de Fusão
     protected BlockPos boundChestPos = null;
+    private UUID ownerId;
     private int allyLevel = 1; // Nível 1 a 3
 
     public EntityAllyBase(World worldIn) {
@@ -76,14 +74,14 @@ public abstract class EntityAllyBase extends EntityCreature {
         this.targetTasks.addTask(1, new EntityAINearestAttackableTarget<>(this, EntityLivingBase.class, 10, true, false, target -> target instanceof IMob));
     }
 
+    public EntityPlayer getOwner() {
+        return ownerId != null ? this.worldObj.getPlayerEntityByUUID(ownerId) : null;
+    }
+
     public void setOwner(EntityPlayer player) {
         if (player != null) {
             this.ownerId = player.getUniqueID();
         }
-    }
-
-    public EntityPlayer getOwner() {
-        return ownerId != null ? this.worldObj.getPlayerEntityByUUID(ownerId) : null;
     }
 
     public int getAllyLevel() {

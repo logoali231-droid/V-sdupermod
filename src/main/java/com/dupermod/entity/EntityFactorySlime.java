@@ -30,14 +30,10 @@ public class EntityFactorySlime extends EntityAllyBase {
     private int dirtQueue = 0;
     private int sandQueue = 0;
     private int dustQueue = 0;
-
-    private enum State { IDLE, GOING_TO_INPUT, PROCESSING, GOING_TO_OUTPUT }
     private State currentState = State.IDLE;
-
     private int workTimer = 0;
     private int stuckTimer = 0;
     private Random rand = new Random();
-
     public EntityFactorySlime(World worldIn) {
         super(worldIn);
     }
@@ -202,4 +198,6 @@ public class EntityFactorySlime extends EntityAllyBase {
         sandQueue = compound.getInteger("SandQ");
         dustQueue = compound.getInteger("DustQ");
     }
+
+    private enum State {IDLE, GOING_TO_INPUT, PROCESSING, GOING_TO_OUTPUT}
 }

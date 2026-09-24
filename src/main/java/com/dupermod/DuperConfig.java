@@ -8,14 +8,12 @@ import java.io.File;
 
 public class DuperConfig {
 
-    public static Configuration config;
-
     // --- Nomes das Categorias ---
     public static final String CATEGORY_GENERAL = Configuration.CATEGORY_GENERAL;
     public static final String CATEGORY_COOLING = "cooling";
     public static final String CATEGORY_MOTOR = "motor_accessibility";
     public static final String CATEGORY_VISUAL = "visual_accessibility";
-
+    public static Configuration config;
     // --- Categoria Geral ---
     public static int duplicationTicks = 100;
     public static boolean enableParticles = true;

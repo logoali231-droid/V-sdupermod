@@ -22,23 +22,20 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class EntityLumberjack extends EntityAllyBase {
 
-    private int workTimer = 0;
-    private BlockPos targetTree = null;
-
-    private enum State { GATHERING, DELIVERING }
-    private State currentState = State.GATHERING;
-
     public boolean hasMultiplierUpgrade = false;
     public boolean hasCharcoalUpgrade = false;
     public boolean hasSpeedUpgrade = false;
     public boolean hasBackpackUpgrade = false;
-
     public ItemStackHandler lumberInventory = new ItemStackHandler(9); //[cite: 2]
+    private int workTimer = 0;
+    private BlockPos targetTree = null;
+    private State currentState = State.GATHERING;
 
     public EntityLumberjack(World worldIn) {
         super(worldIn);
@@ -293,7 +290,10 @@ public class EntityLumberjack extends EntityAllyBase {
         this.hasBackpackUpgrade = compound.getBoolean("UpgradeBackpack");
 
         if (this.hasBackpackUpgrade) this.lumberInventory = new ItemStackHandler(27);
-        if (compound.hasKey("LumberInventory")) this.lumberInventory.deserializeNBT(compound.getCompoundTag("LumberInventory"));
+        if (compound.hasKey("LumberInventory"))
+            this.lumberInventory.deserializeNBT(compound.getCompoundTag("LumberInventory"));
         if (this.hasSpeedUpgrade) this.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.35D);
     }
+
+    private enum State {GATHERING, DELIVERING}
 }

@@ -1,5 +1,7 @@
 {
   "variants": {
-    "normal": { "model": "dupermod:blockdupertier1" }
+    "normal": {
+      "model": "dupermod:blockdupertier1"
+    }
   }
 }

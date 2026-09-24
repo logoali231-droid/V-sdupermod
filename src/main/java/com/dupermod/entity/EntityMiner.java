@@ -23,23 +23,20 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.oredict.OreDictionary;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class EntityMiner extends EntityAllyBase {
 
-    private int workTimer = 0;
-    private BlockPos targetOre = null;
-
-    private enum State { MINING, DELIVERING }
-    private State currentState = State.MINING;
-
     public boolean hasMultiplierUpgrade = false;
     public boolean hasSmelterUpgrade = false;
     public boolean hasSpeedUpgrade = false;
     public boolean hasBackpackUpgrade = false;
-
     public ItemStackHandler minerInventory = new ItemStackHandler(9); //[cite: 2]
+    private int workTimer = 0;
+    private BlockPos targetOre = null;
+    private State currentState = State.MINING;
 
     public EntityMiner(World worldIn) {
         super(worldIn);
@@ -113,7 +110,8 @@ public class EntityMiner extends EntityAllyBase {
     }
 
     private boolean isOre(IBlockState state) {
-        if (state.getBlock() instanceof BlockOre || state.getBlock() instanceof BlockRedstoneOre) return true; //[cite: 2]
+        if (state.getBlock() instanceof BlockOre || state.getBlock() instanceof BlockRedstoneOre)
+            return true; //[cite: 2]
         Item item = Item.getItemFromBlock(state.getBlock());
         if (item != null) {
             ItemStack stack = new ItemStack(item, 1, state.getBlock().getMetaFromState(state));
@@ -292,7 +290,10 @@ public class EntityMiner extends EntityAllyBase {
         this.hasBackpackUpgrade = compound.getBoolean("UpgradeBackpack");
 
         if (this.hasBackpackUpgrade) this.minerInventory = new ItemStackHandler(27);
-        if (compound.hasKey("MinerInventory")) this.minerInventory.deserializeNBT(compound.getCompoundTag("MinerInventory"));
+        if (compound.hasKey("MinerInventory"))
+            this.minerInventory.deserializeNBT(compound.getCompoundTag("MinerInventory"));
         if (this.hasSpeedUpgrade) this.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.35D);
     }
+
+    private enum State {MINING, DELIVERING}
 }

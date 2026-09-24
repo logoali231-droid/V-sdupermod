@@ -31,14 +31,16 @@ public class DuperMod {
         File configFile = new File(event.getModConfigurationDirectory(), "dupermod.cfg");
         DuperConfig.init(configFile);
 
+        ModBlocks.init();
         ModItems.init();
-        ModEntities.init(); // Registo das entidades (Lumberjack & Farmer)
+        ModEntities.registerEntities();
         proxy.preInit(event);
     }
 
     @Mod.EventHandler
     public void init(FMLInitializationEvent event) {
         proxy.init(event);
+        ModBlocks.registerRecipes();
         ModItems.registerRecipes();
 
         // Registo dos Eventos

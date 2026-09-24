@@ -52,10 +52,13 @@ public class CoolingHandler {
                     // Se a temperatura estiver quente (ordinal > 2), arrefecer proporcionalmente às peças
                     if (levelEnum.ordinal() > 2) {
                         int targetOrdinal = Math.max(2, levelEnum.ordinal() - coolingPower);
-                        Class<?> tempClass = Class.forName("toughasnails.api.temperature.Temperature");
-                        Object newTemp = tempClass.getConstructor(int.class).newInstance(targetOrdinal);
-                        Method setTemp = tempHelper.getMethod("setTemperature", EntityPlayer.class, tempClass);
-                        setTemp.invoke(null, player, newTemp);
+                        Class<?> tempEnumClass = Class.forName("toughasnails.api.temperature.Temperature");
+                        Object[] enumConstants = tempEnumClass.getEnumConstants();
+                        if (enumConstants != null && targetOrdinal < enumConstants.length) {
+                            Object newTemp = enumConstants[targetOrdinal];
+                            Method setTempMethod = tempData.getClass().getMethod("setTemperature", tempEnumClass);
+                            setTempMethod.invoke(tempData, newTemp);
+                        }
                     }
                 } catch (Exception ignored) {
                     // Previne crashes caso o TAN não esteja no ambiente

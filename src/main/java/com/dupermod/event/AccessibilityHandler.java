@@ -63,13 +63,14 @@ public class AccessibilityHandler {
             }
 
             // Consumo Automático de Comida (Auto-Eat)
+            // Consumo Automático de Comida (Auto-Eat)
             if (DuperConfig.enableAutoEat) {
                 if (player.getFoodStats().needFood() && player.getFoodStats().getFoodLevel() <= 12) {
                     for (int i = 0; i < 9; i++) {
                         ItemStack stack = player.inventory.getStackInSlot(i);
                         if (stack != null && stack.getItem() instanceof ItemFood) {
                             ItemFood food = (ItemFood) stack.getItem();
-                            player.getFoodStats().addStats(food, stack);
+                            player.getFoodStats().addStats(food.getHealAmount(stack), food.getSaturationModifier(stack));
                             stack.stackSize--;
                             if (stack.stackSize <= 0) {
                                 player.inventory.setInventorySlotContents(i, null);

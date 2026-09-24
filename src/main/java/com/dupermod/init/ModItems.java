@@ -36,6 +36,7 @@ public class ModItems {
 
     // Upgrades do Lenhador
     public static Item upgradeLogMultiplier;
+    public static Item upgradeOreMultiplier;
     public static Item upgradeCharcoal;
     public static Item upgradeSpeed;
 
@@ -85,8 +86,14 @@ public class ModItems {
 
         // Upgrades do Lenhador
         upgradeLogMultiplier = new Item().setUnlocalizedName("upgrade_log_multiplier").setRegistryName("upgrade_log_multiplier").setCreativeTab(CreativeTabs.MISC);
+        upgradeOreMultiplier = new Item().setUnlocalizedName("upgrade_ore_multiplier").setRegistryName("upgrade_ore_multiplier").setCreativeTab(CreativeTabs.MISC);
         upgradeCharcoal = new Item().setUnlocalizedName("upgrade_charcoal").setRegistryName("upgrade_charcoal").setCreativeTab(CreativeTabs.MISC);
         upgradeSpeed = new Item().setUnlocalizedName("upgrade_speed").setRegistryName("upgrade_speed").setCreativeTab(CreativeTabs.MISC);
+
+        registerItem(upgradeLogMultiplier, "upgrade_log_multiplier");
+        registerItem(upgradeOreMultiplier, "upgrade_ore_multiplier");
+        registerItem(upgradeCharcoal, "upgrade_charcoal");
+        registerItem(upgradeSpeed, "upgrade_speed");
 
         registerItem(upgradeLogMultiplier, "upgrade_log_multiplier");
         registerItem(upgradeCharcoal, "upgrade_charcoal");

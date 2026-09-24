@@ -252,7 +252,6 @@ public abstract class EntityAllyBase extends EntityCreature {
         if (inputPos != null) compound.setLong("UnivInputPos", inputPos.toLong());
         if (outputPos != null) compound.setLong("UnivOutputPos", outputPos.toLong());
         if (workAreaCenter != null) compound.setLong("UnivWorkArea", workAreaCenter.toLong());
-    }
         if (ownerId != null) compound.setString("OwnerUUID", ownerId.toString());
         compound.setTag("Inventory", inventory.serializeNBT());
         compound.setInteger("AllyLevel", allyLevel);
@@ -262,8 +261,6 @@ public abstract class EntityAllyBase extends EntityCreature {
             compound.setInteger("ChestY", boundChestPos.getY());
             compound.setInteger("ChestZ", boundChestPos.getZ());
         }
-
-
     }
 
     @Override

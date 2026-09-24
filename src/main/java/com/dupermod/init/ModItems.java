@@ -1,5 +1,6 @@
 package com.dupermod.init;
 
+import com.dupermod.DuperMod;
 import com.dupermod.item.ItemAccessibilityRing;
 import com.dupermod.item.ItemAllySummoner;
 import com.dupermod.item.ItemCommandWand;
@@ -74,17 +75,15 @@ public class ModItems {
         registerItem(summonerFighter, "summoner_fighter");
         registerItem(summonerCooler, "summoner_cooler");
         registerItem(summonerMiner, "summoner_miner");
-
-        registerRecipes();
     }
 
     private static void registerItem(Item item, String name) {
-        // Checa se o item já não possui RegistryName definido no construtor
         if (item.getRegistryName() == null) {
-            item.setRegistryName(new ResourceLocation("dupermod", name));
+            item.setRegistryName(new ResourceLocation(DuperMod.MODID, name));
         }
 
         GameRegistry.register(item);
+        DuperMod.proxy.registerItemRenderer(item, 0, name);
     }
 
     public static void registerRecipes() {

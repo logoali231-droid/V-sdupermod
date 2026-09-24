@@ -1,5 +1,6 @@
 package com.dupermod.entity;
 
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
@@ -17,8 +18,6 @@ import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 public class EntityFactorySlime extends EntityAllyBase {
@@ -26,7 +25,7 @@ public class EntityFactorySlime extends EntityAllyBase {
     // Inventário interno de 54 slots (Baú duplo)
     private ItemStackHandler internalInventory = new ItemStackHandler(54);
 
-    // Filas de processamento (simulando as 4 stacks marteladas)
+    // Filas de processamento
     private int gravelQueue = 0;
     private int dirtQueue = 0;
     private int sandQueue = 0;
@@ -46,11 +45,10 @@ public class EntityFactorySlime extends EntityAllyBase {
     @Override
     public void onUpdate() {
         super.onUpdate();
-        if (this.world.isRemote) return;
+        if (this.worldObj.isRemote) return;
 
         switch (currentState) {
             case IDLE:
-                // FIXED: Verifies input chest availability before changing state to prevent infinite pathfinding loop
                 if (inputPos != null && outputPos != null && hasMaterialsInInput()) {
                     currentState = State.GOING_TO_INPUT;
                 }
@@ -60,7 +58,7 @@ public class EntityFactorySlime extends EntityAllyBase {
                 if (this.getDistanceSqToCenter(inputPos) < 4.0D) {
                     currentState = State.PROCESSING;
                 } else {
-                    this.getNavigator().tryMoveToXYZ(inputPos.getX(), inputPos.getY(), inputPos.getZ(), 1.0D);
+                    moveToPos(inputPos);
                 }
                 break;
 
@@ -71,14 +69,15 @@ public class EntityFactorySlime extends EntityAllyBase {
 
             case GOING_TO_OUTPUT:
                 if (this.getDistanceSqToCenter(outputPos) < 4.0D) {
-                    unloadToChest(outputPos);
+                    dumpInventory();
                     currentState = State.IDLE;
                 } else {
-                    this.getNavigator().tryMoveToXYZ(outputPos.getX(), outputPos.getY(), outputPos.getZ(), 1.0D);
+                    moveToPos(outputPos);
                 }
                 break;
         }
     }
+
     private void moveToPos(BlockPos pos) {
         this.getNavigator().tryMoveToXYZ(pos.getX(), pos.getY(), pos.getZ(), 1.0D);
         if (this.getNavigator().noPath()) {
@@ -90,6 +89,21 @@ public class EntityFactorySlime extends EntityAllyBase {
         } else {
             stuckTimer = 0;
         }
+    }
+
+    public boolean hasMaterialsInInput() {
+        if (inputPos == null) return false;
+        TileEntity te = worldObj.getTileEntity(inputPos);
+        if (te != null && te.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, EnumFacing.UP)) {
+            IItemHandler chestInv = te.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, EnumFacing.UP);
+            for (int i = 0; i < chestInv.getSlots(); i++) {
+                ItemStack stack = chestInv.getStackInSlot(i);
+                if (stack != null && stack.getItem() == Item.getItemFromBlock(Blocks.COBBLESTONE)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private void extractCobblestone() {
@@ -109,7 +123,6 @@ public class EntityFactorySlime extends EntityAllyBase {
             }
 
             if (totalExtracted > 0) {
-                // Simulação Matemática do Hammering[cite: 2]
                 int perQueue = totalExtracted / 4;
                 gravelQueue += perQueue;
                 dirtQueue += perQueue;
@@ -123,17 +136,23 @@ public class EntityFactorySlime extends EntityAllyBase {
     }
 
     private void processMaterials() {
+        extractCobblestone();
+
         ItemStack result = new ItemStack(Blocks.COBBLESTONE, 2);
 
-        // FIXED: Handles internal inventory overflow by dropping excess items on the ground
-        ItemStack remainder = ItemHandlerHelper.insertItemStacked(this.inventory, result, false);
+        ItemStack remainder = ItemHandlerHelper.insertItemStacked(this.internalInventory, result, false);
         if (remainder != null && remainder.stackSize > 0) {
-            EntityItem itemEntity = new EntityItem(this.world, this.posX, this.posY, this.posZ, remainder);
-            this.world.spawnEntity(itemEntity);
+            EntityItem itemEntity = new EntityItem(this.worldObj, this.posX, this.posY, this.posZ, remainder);
+            this.worldObj.spawnEntityInWorld(itemEntity);
         }
     }
 
     private void dumpInventory() {
+        if (outputPos == null) {
+            currentState = State.IDLE;
+            return;
+        }
+
         TileEntity te = worldObj.getTileEntity(this.outputPos);
         if (te != null && te.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, EnumFacing.UP)) {
             IItemHandler chestInv = te.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, EnumFacing.UP);
@@ -170,7 +189,6 @@ public class EntityFactorySlime extends EntityAllyBase {
         compound.setInteger("DirtQ", dirtQueue);
         compound.setInteger("SandQ", sandQueue);
         compound.setInteger("DustQ", dustQueue);
-        // inputPos e outputPos já são salvos pela classe base.
     }
 
     @Override

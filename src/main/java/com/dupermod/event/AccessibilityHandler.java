@@ -2,18 +2,18 @@ package com.dupermod.event;
 
 import com.dupermod.DuperConfig;
 import com.dupermod.init.ModItems;
-import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.monster.IMob;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.MobEffects;
-
+import net.minecraft.init.SoundEvents;
 import net.minecraft.item.ItemFood;
 import net.minecraft.item.ItemStack;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.EnumSkyBlock;
@@ -27,8 +27,6 @@ import java.util.List;
 
 public class AccessibilityHandler {
 
-    private int sonarTimer = 0;
-
     @SubscribeEvent
     public void onPlayerTick(TickEvent.PlayerTickEvent event) {
         if (event.phase != TickEvent.Phase.END) return;
@@ -36,8 +34,8 @@ public class AccessibilityHandler {
         EntityPlayer player = event.player;
         World world = player.worldObj;
 
-        // Verifica se o jogador possui o Anel de Acessibilidade no inventário ou hotbar
-        boolean hasRing = player.inventory.hasItemStack(new ItemStack(ModItems.accessibilityRing));
+        // USAhasItem EM VEZ DE INSTANCIAR UM NOVO ItemStack A CADA TICK
+        boolean hasRing = player.inventory.hasItem(ModItems.accessibilityRing);
 
         // --- 1. ASSISTÊNCIA MOTORA ---
 
@@ -45,7 +43,7 @@ public class AccessibilityHandler {
         if (DuperConfig.enableStepAssist && hasRing) {
             player.stepHeight = 1.25F;
         } else if (player.stepHeight == 1.25F) {
-            player.stepHeight = 0.6F; // Restaura o valor padrão
+            player.stepHeight = 0.6F; // Restaura o valor padrão do Vanilla
         }
 
         if (world.isRemote) return; // Apenas servidor para as lógicas abaixo
@@ -53,7 +51,11 @@ public class AccessibilityHandler {
         if (hasRing) {
             // Magnet (Coleta Automática)
             if (DuperConfig.enableMagnet) {
-                AxisAlignedBB area = player.getEntityBoundingBox().expand(8.0D, 8.0D, 8.0D);
+                // Caixa de colisão centralizada 16x16x16 ao redor do jogador
+                AxisAlignedBB area = new AxisAlignedBB(
+                        player.posX - 8.0D, player.posY - 8.0D, player.posZ - 8.0D,
+                        player.posX + 8.0D, player.posY + 8.0D, player.posZ + 8.0D
+                );
                 List<EntityItem> items = world.getEntitiesWithinAABB(EntityItem.class, area);
                 for (EntityItem item : items) {
                     if (item.isEntityAlive() && !item.cannotPickup()) {
@@ -63,7 +65,6 @@ public class AccessibilityHandler {
             }
 
             // Consumo Automático de Comida (Auto-Eat)
-            // Consumo Automático de Comida (Auto-Eat)
             if (DuperConfig.enableAutoEat) {
                 if (player.getFoodStats().needFood() && player.getFoodStats().getFoodLevel() <= 12) {
                     for (int i = 0; i < 9; i++) {
@@ -71,6 +72,11 @@ public class AccessibilityHandler {
                         if (stack != null && stack.getItem() instanceof ItemFood) {
                             ItemFood food = (ItemFood) stack.getItem();
                             player.getFoodStats().addStats(food.getHealAmount(stack), food.getSaturationModifier(stack));
+
+                            // Som de comer para feedback do jogador
+                            world.playSound(null, player.posX, player.posY, player.posZ,
+                                    SoundEvents.ENTITY_GENERIC_EAT, SoundCategory.PLAYERS, 0.5F, 1.0F);
+
                             stack.stackSize--;
                             if (stack.stackSize <= 0) {
                                 player.inventory.setInventorySlotContents(i, null);
@@ -83,22 +89,26 @@ public class AccessibilityHandler {
 
             // --- 2. ACESSIBILIDADE VISUAL ---
 
-            // Visão Noturna Contínua
+            // Visão Noturna Contínua (Evita o efeito de piscar reaplicando apenas quando necessário)
             if (DuperConfig.enableNightVision) {
-                player.addPotionEffect(new PotionEffect(MobEffects.NIGHT_VISION, 300, 0, true, false));
+                PotionEffect currentEffect = player.getActivePotionEffect(MobEffects.NIGHT_VISION);
+                if (currentEffect == null || currentEffect.getDuration() <= 220) {
+                    player.addPotionEffect(new PotionEffect(MobEffects.NIGHT_VISION, 300, 0, true, false));
+                }
             }
 
-            // Sonar & Grid de Spawn (Executado a cada 10 ticks)
-            sonarTimer++;
-            if (sonarTimer >= 10) {
-                sonarTimer = 0;
+            // Sonar & Grid de Spawn (Executado a cada 10 ticks usando o tick do jogador)
+            if (player.ticksExisted % 10 == 0) {
 
                 if (world instanceof WorldServer) {
                     WorldServer ws = (WorldServer) world;
 
                     // Sonar de Mobs Hostis
                     if (DuperConfig.enableSonar) {
-                        AxisAlignedBB mobArea = player.getEntityBoundingBox().expand(12.0D, 6.0D, 12.0D);
+                        AxisAlignedBB mobArea = new AxisAlignedBB(
+                                player.posX - 12.0D, player.posY - 6.0D, player.posZ - 12.0D,
+                                player.posX + 12.0D, player.posY + 6.0D, player.posZ + 12.0D
+                        );
                         List<EntityLivingBase> mobs = world.getEntitiesWithinAABB(EntityLivingBase.class, mobArea);
                         for (EntityLivingBase mob : mobs) {
                             if (mob instanceof IMob) {
@@ -136,7 +146,9 @@ public class AccessibilityHandler {
         World world = event.getWorld();
 
         if (world.isRemote || !DuperConfig.enableAutoTool) return;
-        if (!player.inventory.hasItemStack(new ItemStack(ModItems.accessibilityRing))) return;
+
+        // USA hasItem EM VEZ DE INSTANCIAR NOVO ItemStack
+        if (!player.inventory.hasItem(ModItems.accessibilityRing)) return;
 
         IBlockState state = world.getBlockState(event.getPos());
         int bestSlot = -1;

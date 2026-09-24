@@ -1,5 +1,6 @@
 package com.dupermod.entity;
 
+import com.dupermod.item.ItemCommandWand.WandMode;
 import net.minecraft.entity.EntityCreature;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
@@ -22,7 +23,6 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
-import com.dupermod.items.ItemCommandWand.WandMode;
 
 import java.util.UUID;
 
@@ -38,7 +38,7 @@ public abstract class EntityAllyBase extends EntityCreature {
     public BlockPos forceMoveTarget = null;
 
     // Sistema de Baú e Nível de Fusão
-    private BlockPos boundChestPos = null;
+    protected BlockPos boundChestPos = null;
     private int allyLevel = 1; // Nível 1 a 3
 
     public EntityAllyBase(World worldIn) {
@@ -67,8 +67,6 @@ public abstract class EntityAllyBase extends EntityCreature {
         }
     }
 
-
-
     @Override
     protected void initEntityAI() {
         this.tasks.addTask(1, new EntityAIAttackMelee(this, 1.2D, false));
@@ -92,7 +90,7 @@ public abstract class EntityAllyBase extends EntityCreature {
         return this.allyLevel;
     }
 
-    private void updateAllySize() {
+    protected void updateAllySize() {
         float baseSize = 0.6F + (this.allyLevel * 0.3F);
         this.setSize(baseSize, baseSize);
     }
@@ -105,7 +103,7 @@ public abstract class EntityAllyBase extends EntityCreature {
         return true;
     }
 
-    private void unloadToChest() {
+    protected void unloadToChest() {
         if (boundChestPos == null) return;
 
         TileEntity te = worldObj.getTileEntity(boundChestPos);
@@ -184,7 +182,7 @@ public abstract class EntityAllyBase extends EntityCreature {
 
     // --- INTERAÇÕES DO JOGADOR ---
     @Override
-    public boolean processInteract(EntityPlayer player, EnumHand hand, ItemStack stack) {
+    public boolean processInitialInteract(EntityPlayer player, EnumHand hand, ItemStack stack) {
         if (!this.worldObj.isRemote && hand == EnumHand.MAIN_HAND) {
 
             // 1. Vinculação / Desvinculação de Baú (Usando o Item de Baú)
@@ -218,7 +216,12 @@ public abstract class EntityAllyBase extends EntityCreature {
                     this.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(newMaxHealth);
                     this.heal(10.0F);
 
-                    if (!player.capabilities.isCreativeMode) stack.stackSize--;
+                    if (!player.capabilities.isCreativeMode) {
+                        stack.stackSize--;
+                        if (stack.stackSize <= 0) {
+                            player.setHeldItem(hand, null);
+                        }
+                    }
                     player.addChatMessage(new TextComponentString("§aFusão efetuada! Nível do Aliado: " + allyLevel));
                 } else {
                     player.addChatMessage(new TextComponentString("§eEste aliado já atingiu o nível máximo de fusão (3)!"));
@@ -231,18 +234,21 @@ public abstract class EntityAllyBase extends EntityCreature {
             for (int i = 0; i < inventory.getSlots(); i++) {
                 ItemStack item = inventory.getStackInSlot(i);
                 if (item != null) {
-                    if (player.inventory.addItemStackToInventory(item)) {
+                    player.inventory.addItemStackToInventory(item);
+                    if (item.stackSize <= 0) {
                         inventory.setStackInSlot(i, null);
-                        collected++;
+                    } else {
+                        inventory.setStackInSlot(i, item);
                     }
+                    collected++;
                 }
             }
             if (collected > 0) {
-                player.addChatMessage(new TextComponentString("Recolheste os recursos do teu aliado!"));
+                player.addChatMessage(new TextComponentString("§aRecolheste os recursos do teu aliado!"));
             }
             return true;
         }
-        return super.processInteract(player, hand, stack);
+        return super.processInitialInteract(player, hand, stack);
     }
 
     // --- PERSISTÊNCIA NBT ---

@@ -2,7 +2,6 @@ package com.dupermod.entity;
 
 import net.minecraft.block.BlockCrops;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
@@ -13,21 +12,21 @@ public class EntityFarmer extends EntityAllyBase {
     }
 
     public void harvestCrops() {
-        if (this.world.isRemote) return;
+        if (this.worldObj.isRemote) return;
 
         BlockPos origin = new BlockPos(this);
         int radius = 4;
 
         for (int x = -radius; x <= radius; x++) {
-            for (int z = -radius; z <= radius; z++) { // FIXED: Corrected loop increment from x++ to z++
+            for (int z = -radius; z <= radius; z++) {
                 BlockPos targetPos = origin.add(x, 0, z);
-                IBlockState state = this.world.getBlockState(targetPos);
+                IBlockState state = this.worldObj.getBlockState(targetPos);
 
                 if (state.getBlock() instanceof BlockCrops) {
                     BlockCrops crop = (BlockCrops) state.getBlock();
                     if (crop.isMaxAge(state)) {
-                        this.world.destroyBlock(targetPos, true);
-                        this.world.setBlockState(targetPos, crop.getStateFromMeta(0));
+                        this.worldObj.destroyBlock(targetPos, true);
+                        this.worldObj.setBlockState(targetPos, crop.getStateFromMeta(0));
                     }
                 }
             }
@@ -37,7 +36,7 @@ public class EntityFarmer extends EntityAllyBase {
     @Override
     public void onLivingUpdate() {
         super.onLivingUpdate();
-        if (!this.world.isRemote && this.ticksExisted % 40 == 0) {
+        if (!this.worldObj.isRemote && this.ticksExisted % 40 == 0) {
             harvestCrops();
         }
     }

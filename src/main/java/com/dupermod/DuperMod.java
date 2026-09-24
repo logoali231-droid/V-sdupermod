@@ -30,6 +30,11 @@ public class DuperMod {
     public void preInit(FMLPreInitializationEvent event) {
         File configFile = new File(event.getModConfigurationDirectory(), "dupermod.cfg");
         DuperConfig.init(configFile);
+        // Inicializa a configuração com o arquivo .cfg
+        DuperConfig.init(event.getSuggestedConfigurationFile());
+
+        // Registra o evento de mudança de config
+        MinecraftForge.EVENT_BUS.register(DuperConfig.class);
 
         ModBlocks.init();
         ModItems.init();

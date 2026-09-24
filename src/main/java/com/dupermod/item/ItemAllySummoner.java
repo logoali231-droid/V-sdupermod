@@ -1,12 +1,6 @@
 package com.dupermod.item;
 
-import com.dupermod.entity.EntityAllyBase;
-import com.dupermod.entity.EntityCooler;
-import com.dupermod.entity.EntityFarmer;
 import com.dupermod.entity.EntityFighter;
-import com.dupermod.entity.EntityLumberjack;
-import com.dupermod.entity.EntityMiner;
-import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -22,35 +16,28 @@ public class ItemAllySummoner extends Item {
 
     public ItemAllySummoner(String allyType) {
         this.allyType = allyType;
-        this.setUnlocalizedName("summoner_" + allyType);
-        this.setRegistryName("summoner_" + allyType);
-        this.setCreativeTab(CreativeTabs.MISC);
+        setUnlocalizedName("summoner_" + allyType);
+        setMaxStackSize(1);
+    }
+
+    public String getAllyType() {
+        return allyType;
     }
 
     @Override
-    public EnumActionResult onItemUse(ItemStack stack, EntityPlayer player, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
+    public EnumActionResult onItemUse(EntityPlayer player, World worldIn, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ) {
         if (!worldIn.isRemote) {
             BlockPos spawnPos = pos.offset(facing);
-            EntityAllyBase ally;
+            EntityFighter fighter = new EntityFighter(worldIn);
+            fighter.setPosition(spawnPos.getX() + 0.5D, spawnPos.getY(), spawnPos.getZ() + 0.5D);
+            worldIn.spawnEntityInWorld(fighter);
 
-            if ("lumberjack".equals(allyType)) {
-                ally = new EntityLumberjack(worldIn);
-            } else if ("farmer".equals(allyType)) {
-                ally = new EntityFarmer(worldIn);
-            } else if ("cooler".equals(allyType)) {
-                ally = new EntityCooler(worldIn);
-            } else if ("miner".equals(allyType)) {
-                ally = new EntityMiner(worldIn);
-            } else {
-                ally = new EntityFighter(worldIn);
-            }
-
-            ally.setPosition(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5);
-            ally.setOwner(player);
-            worldIn.spawnEntityInWorld(ally);
-
-            if (!player.capabilities.isCreativeMode) {
+            ItemStack stack = player.getHeldItem(hand);
+            if (stack != null) {
                 stack.stackSize--;
+                if (stack.stackSize <= 0) {
+                    player.setHeldItem(hand, null);
+                }
             }
         }
         return EnumActionResult.SUCCESS;

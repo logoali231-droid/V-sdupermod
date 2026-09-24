@@ -4,6 +4,7 @@ import com.dupermod.item.ItemAccessibilityRing;
 import com.dupermod.item.ItemAllySummoner;
 import com.dupermod.item.ItemCommandWand;
 import com.dupermod.item.ItemCoolingArmor;
+import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
@@ -21,14 +22,12 @@ public class ModItems {
     public static Item allySummoner;
     public static Item commandWand;
 
-    // Equipamento de Arrefecimento
     public static Item coolingHelmet;
     public static Item coolingChestplate;
     public static Item coolingLeggings;
     public static Item coolingBoots;
     public static Item coolingUpgrade;
 
-    // Invocadores (Summoners)
     public static Item summonerLumberjack;
     public static Item summonerFarmer;
     public static Item summonerFighter;
@@ -41,20 +40,20 @@ public class ModItems {
         upgradeCharcoal = new Item().setUnlocalizedName("upgrade_charcoal");
         upgradeSpeed = new Item().setUnlocalizedName("upgrade_speed");
         accessibilityRing = new ItemAccessibilityRing();
-        allySummoner = new ItemAllySummoner();
+        allySummoner = new ItemAllySummoner("generic");
         commandWand = new ItemCommandWand();
 
-        coolingHelmet = new ItemCoolingArmor(ItemCoolingArmor.COOLING_MATERIAL, 1, EntityEquipmentSlot.HEAD).setUnlocalizedName("cooling_helmet");
-        coolingChestplate = new ItemCoolingArmor(ItemCoolingArmor.COOLING_MATERIAL, 1, EntityEquipmentSlot.CHEST).setUnlocalizedName("cooling_chestplate");
-        coolingLeggings = new ItemCoolingArmor(ItemCoolingArmor.COOLING_MATERIAL, 2, EntityEquipmentSlot.LEGS).setUnlocalizedName("cooling_leggings");
-        coolingBoots = new ItemCoolingArmor(ItemCoolingArmor.COOLING_MATERIAL, 1, EntityEquipmentSlot.FEET).setUnlocalizedName("cooling_boots");
+        coolingHelmet = new ItemCoolingArmor(EntityEquipmentSlot.HEAD, "cooling_helmet");
+        coolingChestplate = new ItemCoolingArmor(EntityEquipmentSlot.CHEST, "cooling_chestplate");
+        coolingLeggings = new ItemCoolingArmor(EntityEquipmentSlot.LEGS, "cooling_leggings");
+        coolingBoots = new ItemCoolingArmor(EntityEquipmentSlot.FEET, "cooling_boots");
         coolingUpgrade = new Item().setUnlocalizedName("cooling_upgrade");
 
-        summonerLumberjack = new ItemAllySummoner().setUnlocalizedName("summoner_lumberjack");
-        summonerFarmer = new ItemAllySummoner().setUnlocalizedName("summoner_farmer");
-        summonerFighter = new ItemAllySummoner().setUnlocalizedName("summoner_fighter");
-        summonerCooler = new ItemAllySummoner().setUnlocalizedName("summoner_cooler");
-        summonerMiner = new ItemAllySummoner().setUnlocalizedName("summoner_miner");
+        summonerLumberjack = new ItemAllySummoner("lumberjack");
+        summonerFarmer = new ItemAllySummoner("farmer");
+        summonerFighter = new ItemAllySummoner("fighter");
+        summonerCooler = new ItemAllySummoner("cooler");
+        summonerMiner = new ItemAllySummoner("miner");
 
         registerItem(upgradeLogMultiplier, "upgrade_log_multiplier");
         registerItem(upgradeOreMultiplier, "upgrade_ore_multiplier");
@@ -121,7 +120,7 @@ public class ModItems {
 
         GameRegistry.addRecipe(new ItemStack(summonerCooler),
                 " I ", " I ", " S ",
-                'I', Items.ICE,
+                'I', Blocks.ICE,
                 'S', Items.STICK);
 
         GameRegistry.addRecipe(new ItemStack(summonerMiner),

@@ -114,7 +114,7 @@ public class AccessibilityHandler {
                             for (int z = -5; z <= 5; z++) {
                                 for (int y = -2; y <= 2; y++) {
                                     BlockPos targetPos = playerPos.add(x, y, z);
-                                    if (world.isAirBlock(targetPos) && world.getBlockState(targetPos.down()).isFullyOpaque()) {
+                                    if (world.isAirBlock(targetPos) && world.getBlockState(targetPos.down()).isOpaqueCube()) {
                                         int lightLevel = world.getLightFor(EnumSkyBlock.BLOCK, targetPos);
                                         if (lightLevel <= 7) {
                                             ws.spawnParticle(EnumParticleTypes.SPELL_MOB, targetPos.getX() + 0.5, targetPos.getY() + 0.1, targetPos.getZ() + 0.5, 1, 0.0, 0.0, 0.0, 0.0);

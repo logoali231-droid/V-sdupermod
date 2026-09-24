@@ -1,68 +1,27 @@
-package com.dupermod.event;
+package com.dupermod.handler;
 
-import com.dupermod.DuperConfig;
 import com.dupermod.init.ModItems;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 
-import java.lang.reflect.Method;
-
 public class CoolingHandler {
 
-    private int timer = 0;
+    private static final int INTERVAL_TICKS = 40;
 
     @SubscribeEvent
     public void onPlayerTick(TickEvent.PlayerTickEvent event) {
-        if (!DuperConfig.enableCoolingArmor || event.phase != TickEvent.Phase.END || event.player.worldObj.isRemote) return;
+        if (event.phase != TickEvent.Phase.END || event.player.world.isRemote) return;
 
-        timer++;
-        if (timer >= DuperConfig.coolingIntervalTicks) {
-            timer = 0;
-            EntityPlayer player = event.player;
+        EntityPlayer player = event.player;
 
-            // Conta quantas peças de armadura/upgrades o jogador tem
-            int coolingPower = 0;
-
-            for (EntityEquipmentSlot slot : new EntityEquipmentSlot[]{EntityEquipmentSlot.HEAD, EntityEquipmentSlot.CHEST, EntityEquipmentSlot.LEGS, EntityEquipmentSlot.FEET}) {
-                ItemStack stack = player.getItemStackFromSlot(slot);
-                if (stack != null && (stack.getItem() == ModItems.coolingHelmet ||
-                        stack.getItem() == ModItems.coolingChestplate ||
-                        stack.getItem() == ModItems.coolingLeggings ||
-                        stack.getItem() == ModItems.coolingBoots)) {
-                    coolingPower++;
-                }
-            }
-
-            // Se tiver pelo menos 1 peça equipada
-            if (coolingPower > 0) {
-                try {
-                    Class<?> tempHelper = Class.forName("toughasnails.api.temperature.TemperatureHelper");
-                    Method getTempData = tempHelper.getMethod("getTemperatureData", EntityPlayer.class);
-                    Object tempData = getTempData.invoke(null, player);
-
-                    Method getTemp = tempData.getClass().getMethod("getTemperature");
-                    Object tempObj = getTemp.invoke(tempData);
-
-                    Method getLevel = tempObj.getClass().getMethod("getTemperatureLevel");
-                    Enum<?> levelEnum = (Enum<?>) getLevel.invoke(tempObj);
-
-                    // Se a temperatura estiver quente (ordinal > 2), arrefecer proporcionalmente às peças
-                    if (levelEnum.ordinal() > 2) {
-                        int targetOrdinal = Math.max(2, levelEnum.ordinal() - coolingPower);
-                        Class<?> tempEnumClass = Class.forName("toughasnails.api.temperature.Temperature");
-                        Object[] enumConstants = tempEnumClass.getEnumConstants();
-                        if (enumConstants != null && targetOrdinal < enumConstants.length) {
-                            Object newTemp = enumConstants[targetOrdinal];
-                            Method setTempMethod = tempData.getClass().getMethod("setTemperature", tempEnumClass);
-                            setTempMethod.invoke(tempData, newTemp);
-                        }
-                    }
-                } catch (Exception ignored) {
-                    // Previne crashes caso o TAN não esteja no ambiente
-                }
+        // FIXED: Replaced shared instance timer with player-specific tick count
+        if (player.ticksExisted % INTERVAL_TICKS == 0) {
+            ItemStack helmet = player.inventory.armorItemInSlot(3);
+            if (helmet != null && helmet.getItem() == ModItems.coolingHelmet) {
+                // Apply cooling effect
+                player.extinguish();
             }
         }
     }

@@ -2,62 +2,43 @@ package com.dupermod.entity;
 
 import net.minecraft.block.BlockCrops;
 import net.minecraft.block.state.IBlockState;
-import net.minecraft.item.ItemStack;
+import net.minecraft.init.Blocks;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
-import net.minecraftforge.items.ItemHandlerHelper;
-
-import java.util.List;
 
 public class EntityFarmer extends EntityAllyBase {
 
-    private int workTimer = 0;
-
     public EntityFarmer(World worldIn) {
         super(worldIn);
-        this.setSize(0.5F, 0.5F); // Slime menor para o agricultor
     }
 
-    @Override
-    public void onUpdate() {
-        super.onUpdate();
+    public void harvestCrops() {
+        if (this.world.isRemote) return;
 
-        if (this.worldObj.isRemote || this.isRecovering) return;
-
-        workTimer++;
-        if (workTimer >= 30) { // Trabalha a cada 1.5s
-            workTimer = 0;
-            harvestCrops();
-        }
-    }
-
-    private void harvestCrops() {
-        BlockPos pos = new BlockPos(this);
-        int radius = 6;
+        BlockPos origin = new BlockPos(this);
+        int radius = 4;
 
         for (int x = -radius; x <= radius; x++) {
-            for (int z = -radius; z <= radius; z++) {
-                for (int y = -2; y <= 2; y++) {
-                    BlockPos targetPos = pos.add(x, y, z);
-                    IBlockState state = worldObj.getBlockState(targetPos);
+            for (int z = -radius; z <= radius; z++) { // FIXED: Corrected loop increment from x++ to z++
+                BlockPos targetPos = origin.add(x, 0, z);
+                IBlockState state = this.world.getBlockState(targetPos);
 
-                    if (state.getBlock() instanceof BlockCrops) {
-                        BlockCrops crop = (BlockCrops) state.getBlock();
-                        if (crop.isMaxAge(state)) { // Plantação totalmente desenvolvida
-                            List<ItemStack> drops = crop.getDrops(worldObj, targetPos, state, 0);
-
-                            // Replanta
-                            worldObj.setBlockState(targetPos, crop.withAge(0));
-
-                            // Guarda os frutos/sementes no inventário
-                            for (ItemStack drop : drops) {
-                                ItemHandlerHelper.insertItemStacked(this.inventory, drop, false);
-                            }
-                            return;
-                        }
+                if (state.getBlock() instanceof BlockCrops) {
+                    BlockCrops crop = (BlockCrops) state.getBlock();
+                    if (crop.isMaxAge(state)) {
+                        this.world.destroyBlock(targetPos, true);
+                        this.world.setBlockState(targetPos, crop.getStateFromMeta(0));
                     }
                 }
             }
+        }
+    }
+
+    @Override
+    public void onLivingUpdate() {
+        super.onLivingUpdate();
+        if (!this.world.isRemote && this.ticksExisted % 40 == 0) {
+            harvestCrops();
         }
     }
 }

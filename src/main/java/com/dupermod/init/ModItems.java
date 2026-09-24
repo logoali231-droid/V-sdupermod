@@ -1,111 +1,52 @@
 package com.dupermod.init;
 
-import com.dupermod.DuperMod;
 import com.dupermod.item.ItemAccessibilityRing;
 import com.dupermod.item.ItemAllySummoner;
+import com.dupermod.item.ItemCommandWand;
 import com.dupermod.item.ItemCoolingArmor;
-import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.init.Blocks;
-import net.minecraft.init.Items;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.registry.GameRegistry;
-import net.minecraftforge.fml.relauncher.Side;
-import net.minecraftforge.fml.relauncher.SideOnly;
-import com.dupermod.entity.EntityCooler;
 
 public class ModItems {
 
-    // Arrefecimento
-    public static Item coolingUpgrade;
-    public static Item coolingHelmet;
-    public static Item coolingChestplate;
-    public static Item coolingLeggings;
-    public static Item coolingBoots;
-
-    // Acessibilidade
-    public static Item accessibilityRing;
-
-    // Invocadores de Aliados
-    public static Item summonerLumberjack;
-    public static Item summonerFarmer;
-    public static Item summonerFighter;
-    public static Item summonerMiner;
-    public static Item summonerCooler;
-
-    // Upgrades do Lenhador
     public static Item upgradeLogMultiplier;
     public static Item upgradeOreMultiplier;
     public static Item upgradeCharcoal;
     public static Item upgradeSpeed;
+    public static Item accessibilityRing;
+    public static Item allySummoner;
+    public static Item commandWand;
+    public static Item coolingHelmet;
 
     public static void init() {
-        // Upgrade de Arrefecimento
-        coolingUpgrade = new Item() {
-            @Override
-            @SideOnly(Side.CLIENT)
-            public boolean hasEffect(ItemStack stack) {
-                return true;
-            }
-        }.setUnlocalizedName("cooling_upgrade").setRegistryName("cooling_upgrade").setCreativeTab(CreativeTabs.MISC);
-
-        GameRegistry.register(coolingUpgrade);
-        DuperMod.proxy.registerItemRenderer(coolingUpgrade, 0, "cooling_upgrade");
-
-        // Anel de Acessibilidade
+        upgradeLogMultiplier = new Item().setUnlocalizedName("upgrade_log_multiplier");
+        upgradeOreMultiplier = new Item().setUnlocalizedName("upgrade_ore_multiplier");
+        upgradeCharcoal = new Item().setUnlocalizedName("upgrade_charcoal");
+        upgradeSpeed = new Item().setUnlocalizedName("upgrade_speed");
         accessibilityRing = new ItemAccessibilityRing();
-        registerItem(accessibilityRing, "accessibility_ring");
+        allySummoner = new ItemAllySummoner();
+        commandWand = new ItemCommandWand();
+        coolingHelmet = new ItemCoolingArmor(ItemCoolingArmor.COOLING_MATERIAL, 1, EntityEquipmentSlot.HEAD);
 
-        // Invocadores
-        summonerMiner = new ItemAllySummoner("miner");
-        registerItem(summonerMiner, "summoner_miner");
-
-        summonerCooler = new ItemAllySummoner("cooler");
-        registerItem(summonerCooler, "summoner_cooler");
-
-        // Armaduras de Arrefecimento
-        coolingHelmet = new ItemCoolingArmor(EntityEquipmentSlot.HEAD, "cooling_helmet");
-        coolingChestplate = new ItemCoolingArmor(EntityEquipmentSlot.CHEST, "cooling_chestplate");
-        coolingLeggings = new ItemCoolingArmor(EntityEquipmentSlot.LEGS, "cooling_leggings");
-        coolingBoots = new ItemCoolingArmor(EntityEquipmentSlot.FEET, "cooling_boots");
-
-        registerItem(coolingHelmet, "cooling_helmet");
-        registerItem(coolingChestplate, "cooling_chestplate");
-        registerItem(coolingLeggings, "cooling_leggings");
-        registerItem(coolingBoots, "cooling_boots");
-
-        // Invocadores dos Aliados (Slimes)
-        summonerLumberjack = new ItemAllySummoner("lumberjack");
-        summonerFarmer = new ItemAllySummoner("farmer");
-        summonerFighter = new ItemAllySummoner("fighter");
-
-        registerItem(summonerLumberjack, "summoner_lumberjack");
-        registerItem(summonerFarmer, "summoner_farmer");
-        registerItem(summonerFighter, "summoner_fighter");
-
-        // Upgrades do Lenhador
-        upgradeLogMultiplier = new Item().setUnlocalizedName("upgrade_log_multiplier").setRegistryName("upgrade_log_multiplier").setCreativeTab(CreativeTabs.MISC);
-        upgradeOreMultiplier = new Item().setUnlocalizedName("upgrade_ore_multiplier").setRegistryName("upgrade_ore_multiplier").setCreativeTab(CreativeTabs.MISC);
-        upgradeCharcoal = new Item().setUnlocalizedName("upgrade_charcoal").setRegistryName("upgrade_charcoal").setCreativeTab(CreativeTabs.MISC);
-        upgradeSpeed = new Item().setUnlocalizedName("upgrade_speed").setRegistryName("upgrade_speed").setCreativeTab(CreativeTabs.MISC);
-
+        // FIXED: Removed duplicate registrations
         registerItem(upgradeLogMultiplier, "upgrade_log_multiplier");
         registerItem(upgradeOreMultiplier, "upgrade_ore_multiplier");
         registerItem(upgradeCharcoal, "upgrade_charcoal");
         registerItem(upgradeSpeed, "upgrade_speed");
-
-        registerItem(upgradeLogMultiplier, "upgrade_log_multiplier");
-        registerItem(upgradeCharcoal, "upgrade_charcoal");
-        registerItem(upgradeSpeed, "upgrade_speed");
+        registerItem(accessibilityRing, "accessibility_ring");
+        registerItem(allySummoner, "ally_summoner");
+        registerItem(commandWand, "command_wand");
+        registerItem(coolingHelmet, "cooling_helmet");
     }
 
     private static void registerItem(Item item, String name) {
+        item.setRegistryName(new ResourceLocation("dupermod", name));
         GameRegistry.register(item);
-        DuperMod.proxy.registerItemRenderer(item, 0, name);
     }
-
-    public static void registerRecipes() {
+}
+        public static void registerRecipes() {
         // Receita do Upgrade de Arrefecimento
         GameRegistry.addRecipe(new ItemStack(coolingUpgrade),
                 "SGS", "GRG", "SGS",

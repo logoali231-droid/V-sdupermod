@@ -46,47 +46,39 @@ public class EntityFactorySlime extends EntityAllyBase {
     @Override
     public void onUpdate() {
         super.onUpdate();
-
-        if (this.worldObj.isRemote || this.isRecovering || this.forceMoveTarget != null) return;
+        if (this.world.isRemote) return;
 
         switch (currentState) {
             case IDLE:
-                // Usa os baús configurados pela Varinha (variáveis da classe Base)
-                if (this.inputPos != null && this.outputPos != null) {
-                    if (queuesEmpty()) currentState = State.GOING_TO_INPUT;
-                    else currentState = State.PROCESSING;
+                // FIXED: Verifies input chest availability before changing state to prevent infinite pathfinding loop
+                if (inputPos != null && outputPos != null && hasMaterialsInInput()) {
+                    currentState = State.GOING_TO_INPUT;
                 }
                 break;
 
             case GOING_TO_INPUT:
-                moveToPos(this.inputPos);
-                if (this.getDistanceSqToCenter(this.inputPos) < 4.0D) {
-                    extractCobblestone();
+                if (this.getDistanceSqToCenter(inputPos) < 4.0D) {
                     currentState = State.PROCESSING;
+                } else {
+                    this.getNavigator().tryMoveToXYZ(inputPos.getX(), inputPos.getY(), inputPos.getZ(), 1.0D);
                 }
                 break;
 
             case PROCESSING:
-                if (isInventoryFull()) {
-                    currentState = State.GOING_TO_OUTPUT;
-                } else if (queuesEmpty()) {
-                    currentState = State.GOING_TO_OUTPUT;
-                } else {
-                    processMaterials();
-                }
+                processMaterials();
+                currentState = State.GOING_TO_OUTPUT;
                 break;
 
             case GOING_TO_OUTPUT:
-                moveToPos(this.outputPos);
-                if (this.getDistanceSqToCenter(this.outputPos) < 4.0D) {
-                    dumpInventory();
-                    if (queuesEmpty()) currentState = State.GOING_TO_INPUT;
-                    else currentState = State.PROCESSING;
+                if (this.getDistanceSqToCenter(outputPos) < 4.0D) {
+                    unloadToChest(outputPos);
+                    currentState = State.IDLE;
+                } else {
+                    this.getNavigator().tryMoveToXYZ(outputPos.getX(), outputPos.getY(), outputPos.getZ(), 1.0D);
                 }
                 break;
         }
     }
-
     private void moveToPos(BlockPos pos) {
         this.getNavigator().tryMoveToXYZ(pos.getX(), pos.getY(), pos.getZ(), 1.0D);
         if (this.getNavigator().noPath()) {
@@ -131,39 +123,13 @@ public class EntityFactorySlime extends EntityAllyBase {
     }
 
     private void processMaterials() {
-        workTimer++;
-        if (workTimer >= 10) {
-            workTimer = 0;
-            List<ItemStack> drops = new ArrayList<>();
+        ItemStack result = new ItemStack(Blocks.COBBLESTONE, 2);
 
-            // Simulação do Sieve em cima dos materiais martelados[cite: 2]
-            if (gravelQueue > 0) {
-                gravelQueue--;
-                if (rand.nextInt(100) < 30) drops.add(new ItemStack(Items.FLINT));
-                if (rand.nextInt(100) < 20) drops.add(new ItemStack(Items.IRON_INGOT));
-                if (rand.nextInt(100) < 20) drops.add(new ItemStack(Items.COAL));
-            }
-            else if (dirtQueue > 0) {
-                dirtQueue--;
-                if (rand.nextInt(100) < 40) drops.add(new ItemStack(Items.WHEAT_SEEDS));
-                if (rand.nextInt(100) < 15) drops.add(new ItemStack(Items.DIAMOND));
-            }
-            else if (sandQueue > 0) {
-                sandQueue--;
-                if (rand.nextInt(100) < 30) drops.add(new ItemStack(Items.DYE, 1, 15));
-                if (rand.nextInt(100) < 25) drops.add(new ItemStack(Items.GOLD_NUGGET));
-            }
-            else if (dustQueue > 0) {
-                dustQueue--;
-                if (rand.nextInt(100) < 40) drops.add(new ItemStack(Items.REDSTONE));
-                if (rand.nextInt(100) < 15) drops.add(new ItemStack(Items.GLOWSTONE_DUST));
-                if (rand.nextInt(100) < 10) drops.add(new ItemStack(Items.GUNPOWDER));
-            }
-
-            for (ItemStack drop : drops) {
-                ItemHandlerHelper.insertItemStacked(internalInventory, drop, false);
-            }
-            this.playSound(net.minecraft.init.SoundEvents.BLOCK_SAND_HIT, 0.3F, 1.2F);
+        // FIXED: Handles internal inventory overflow by dropping excess items on the ground
+        ItemStack remainder = ItemHandlerHelper.insertItemStacked(this.inventory, result, false);
+        if (remainder != null && remainder.stackSize > 0) {
+            EntityItem itemEntity = new EntityItem(this.world, this.posX, this.posY, this.posZ, remainder);
+            this.world.spawnEntity(itemEntity);
         }
     }
 

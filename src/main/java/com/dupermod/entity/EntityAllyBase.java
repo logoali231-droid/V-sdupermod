@@ -181,9 +181,8 @@ public abstract class EntityAllyBase extends EntityCreature {
     }
 
     // --- INTERAÇÕES DO JOGADOR ---
-    // --- INTERAÇÕES DO JOGADOR ---
     @Override
-    public boolean processInitialInteract(EntityPlayer player, ItemStack stack, EnumHand hand) {
+    protected boolean processInteract(EntityPlayer player, EnumHand hand, ItemStack stack) {
         if (!this.worldObj.isRemote && hand == EnumHand.MAIN_HAND) {
 
             // 1. Vinculação / Desvinculação de Baú (Usando o Item de Baú)
@@ -249,7 +248,7 @@ public abstract class EntityAllyBase extends EntityCreature {
             }
             return true;
         }
-        return super.processInitialInteract(player, stack, hand);
+        return super.processInteract(player, hand, stack);
     }
 
     // --- PERSISTÊNCIA NBT ---

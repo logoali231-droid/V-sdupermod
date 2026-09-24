@@ -79,7 +79,11 @@ public class ModItems {
     }
 
     private static void registerItem(Item item, String name) {
-        item.setRegistryName(new ResourceLocation("dupermod", name));
+        // Checa se o item já não possui RegistryName definido no construtor
+        if (item.getRegistryName() == null) {
+            item.setRegistryName(new ResourceLocation("dupermod", name));
+        }
+
         GameRegistry.register(item);
     }
 

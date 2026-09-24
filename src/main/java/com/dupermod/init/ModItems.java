@@ -4,8 +4,10 @@ import com.dupermod.item.ItemAccessibilityRing;
 import com.dupermod.item.ItemAllySummoner;
 import com.dupermod.item.ItemCommandWand;
 import com.dupermod.item.ItemCoolingArmor;
+import net.minecraft.init.Items;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.registry.GameRegistry;
 
@@ -18,7 +20,20 @@ public class ModItems {
     public static Item accessibilityRing;
     public static Item allySummoner;
     public static Item commandWand;
+
+    // Equipamento de Arrefecimento
     public static Item coolingHelmet;
+    public static Item coolingChestplate;
+    public static Item coolingLeggings;
+    public static Item coolingBoots;
+    public static Item coolingUpgrade;
+
+    // Invocadores (Summoners)
+    public static Item summonerLumberjack;
+    public static Item summonerFarmer;
+    public static Item summonerFighter;
+    public static Item summonerCooler;
+    public static Item summonerMiner;
 
     public static void init() {
         upgradeLogMultiplier = new Item().setUnlocalizedName("upgrade_log_multiplier");
@@ -28,9 +43,19 @@ public class ModItems {
         accessibilityRing = new ItemAccessibilityRing();
         allySummoner = new ItemAllySummoner();
         commandWand = new ItemCommandWand();
-        coolingHelmet = new ItemCoolingArmor(ItemCoolingArmor.COOLING_MATERIAL, 1, EntityEquipmentSlot.HEAD);
 
-        // FIXED: Removed duplicate registrations
+        coolingHelmet = new ItemCoolingArmor(ItemCoolingArmor.COOLING_MATERIAL, 1, EntityEquipmentSlot.HEAD).setUnlocalizedName("cooling_helmet");
+        coolingChestplate = new ItemCoolingArmor(ItemCoolingArmor.COOLING_MATERIAL, 1, EntityEquipmentSlot.CHEST).setUnlocalizedName("cooling_chestplate");
+        coolingLeggings = new ItemCoolingArmor(ItemCoolingArmor.COOLING_MATERIAL, 2, EntityEquipmentSlot.LEGS).setUnlocalizedName("cooling_leggings");
+        coolingBoots = new ItemCoolingArmor(ItemCoolingArmor.COOLING_MATERIAL, 1, EntityEquipmentSlot.FEET).setUnlocalizedName("cooling_boots");
+        coolingUpgrade = new Item().setUnlocalizedName("cooling_upgrade");
+
+        summonerLumberjack = new ItemAllySummoner().setUnlocalizedName("summoner_lumberjack");
+        summonerFarmer = new ItemAllySummoner().setUnlocalizedName("summoner_farmer");
+        summonerFighter = new ItemAllySummoner().setUnlocalizedName("summoner_fighter");
+        summonerCooler = new ItemAllySummoner().setUnlocalizedName("summoner_cooler");
+        summonerMiner = new ItemAllySummoner().setUnlocalizedName("summoner_miner");
+
         registerItem(upgradeLogMultiplier, "upgrade_log_multiplier");
         registerItem(upgradeOreMultiplier, "upgrade_ore_multiplier");
         registerItem(upgradeCharcoal, "upgrade_charcoal");
@@ -38,73 +63,72 @@ public class ModItems {
         registerItem(accessibilityRing, "accessibility_ring");
         registerItem(allySummoner, "ally_summoner");
         registerItem(commandWand, "command_wand");
+
         registerItem(coolingHelmet, "cooling_helmet");
+        registerItem(coolingChestplate, "cooling_chestplate");
+        registerItem(coolingLeggings, "cooling_leggings");
+        registerItem(coolingBoots, "cooling_boots");
+        registerItem(coolingUpgrade, "cooling_upgrade");
+
+        registerItem(summonerLumberjack, "summoner_lumberjack");
+        registerItem(summonerFarmer, "summoner_farmer");
+        registerItem(summonerFighter, "summoner_fighter");
+        registerItem(summonerCooler, "summoner_cooler");
+        registerItem(summonerMiner, "summoner_miner");
+
+        registerRecipes();
     }
 
     private static void registerItem(Item item, String name) {
         item.setRegistryName(new ResourceLocation("dupermod", name));
         GameRegistry.register(item);
     }
-}
-        public static void registerRecipes() {
-        // Receita do Upgrade de Arrefecimento
-        GameRegistry.addRecipe(new ItemStack(coolingUpgrade),
-                "SGS", "GRG", "SGS",
-                'S', Items.SNOWBALL, 'G', Blocks.ICE, 'R', Items.REDSTONE
-        );
 
-        // Receita do Anel de Acessibilidade
+    public static void registerRecipes() {
         GameRegistry.addRecipe(new ItemStack(accessibilityRing),
-                " G ", "GCG", " G ",
-                'G', Items.GOLD_INGOT, 'C', Items.COMPASS
-        );
+                " R ", "RER", " R ",
+                'R', Items.REDSTONE,
+                'E', Items.EMERALD);
 
-        // Receitas dos Invocadores
         GameRegistry.addRecipe(new ItemStack(summonerLumberjack),
-                " A ", " S ", "   ",
-                'A', Items.IRON_AXE, 'S', Items.SLIME_BALL
-        );
+                " W ", " W ", " S ",
+                'W', Items.WOODEN_AXE,
+                'S', Items.STICK);
 
         GameRegistry.addRecipe(new ItemStack(summonerFarmer),
-                " H ", " S ", "   ",
-                'H', Items.IRON_HOE, 'S', Items.SLIME_BALL
-        );
+                " H ", " H ", " S ",
+                'H', Items.WOODEN_HOE,
+                'S', Items.STICK);
 
         GameRegistry.addRecipe(new ItemStack(summonerFighter),
-                " S ", " X ", "   ",
-                'S', Items.IRON_SWORD, 'X', Items.SLIME_BALL
-        );
+                " S ", " S ", " S ",
+                'S', Items.IRON_SWORD);
 
-        // Receitas dos Upgrades do Lenhador
-        // 1. Multiplicador: Diamante + Bola de Slime + Machado de Ouro
         GameRegistry.addRecipe(new ItemStack(upgradeLogMultiplier),
-                " D ", " S ", " A ",
-                'D', Items.DIAMOND, 'S', Items.SLIME_BALL, 'A', Items.GOLDEN_AXE
-        );
+                " D ", " L ", " D ",
+                'D', Items.DIAMOND,
+                'L', Items.OAK_DOOR);
 
-        // 2. Carvão: Forno + Bola de Slime + Carvão
         GameRegistry.addRecipe(new ItemStack(upgradeCharcoal),
-                " C ", " S ", " F ",
-                'C', Items.COAL, 'S', Items.SLIME_BALL, 'F', Blocks.FURNACE
-        );
+                " C ", " F ", " C ",
+                'C', Items.COAL,
+                'F', Items.FLINT);
 
-        // 3. Velocidade: Açúcar + Bola de Slime + Pena
         GameRegistry.addRecipe(new ItemStack(upgradeSpeed),
-                " S ", " X ", " P ",
-                'S', Items.SUGAR, 'X', Items.SLIME_BALL, 'P', Items.FEATHER
-        );
+                " S ", " R ", " S ",
+                'S', Items.FEATHER,
+                'R', Items.REDSTONE);
 
         GameRegistry.addRecipe(new ItemStack(summonerCooler),
-                " I ", " S ", "   ",
-                'I', Blocks.PACKED_ICE, 'S', Items.SLIME_BALL
-        );
+                " I ", " I ", " S ",
+                'I', Items.ICE,
+                'S', Items.STICK);
 
         GameRegistry.addRecipe(new ItemStack(summonerMiner),
-                " P ", " S ", "   ",
-                'P', Items.IRON_PICKAXE, 'S', Items.SLIME_BALL
-        );
+                " P ", " P ", " S ",
+                'P', Items.IRON_PICKAXE,
+                'S', Items.STICK);
 
-        // Receitas das Armaduras de Arrefecimento
         GameRegistry.addShapelessRecipe(new ItemStack(coolingHelmet), Items.LEATHER_HELMET, coolingUpgrade);
         GameRegistry.addShapelessRecipe(new ItemStack(coolingChestplate), Items.LEATHER_CHESTPLATE, coolingUpgrade);
         GameRegistry.addShapelessRecipe(new ItemStack(coolingLeggings), Items.LEATHER_LEGGINGS, coolingUpgrade);

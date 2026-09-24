@@ -176,7 +176,7 @@ public class EntityMiner extends EntityAllyBase {
         }
     }
 
-    private boolean isInventoryFull() {
+    public boolean isInventoryFull() {
         int emptySlots = 0;
         for (int i = 0; i < minerInventory.getSlots(); i++) {
             if (minerInventory.getStackInSlot(i) == null) emptySlots++;

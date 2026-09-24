@@ -188,7 +188,7 @@ public class EntityFactorySlime extends EntityAllyBase {
         return gravelQueue == 0 && dirtQueue == 0 && sandQueue == 0 && dustQueue == 0;
     }
 
-    private boolean isInventoryFull() {
+    public boolean isInventoryFull() {
         int usedSlots = 0;
         for (int i = 0; i < internalInventory.getSlots(); i++) {
             if (internalInventory.getStackInSlot(i) != null) usedSlots++;

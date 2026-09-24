@@ -16,7 +16,7 @@ public class EntityFighter extends EntityAllyBase {
     protected void applyEntityAttributes() {
         super.applyEntityAttributes();
         // Status de combate reforçados
-        this.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(40.0D); // 40 HP (20 Corações)
+        this.getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(100.0D); // 40 HP (20 Corações)
         this.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.28D);
         this.getAttributeMap().registerAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(6.0D); // 3 Corações de dano por golpe
     }

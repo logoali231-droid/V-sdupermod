@@ -177,7 +177,7 @@ public class EntityLumberjack extends EntityAllyBase {
         }
     }
 
-    private boolean isInventoryFull() {
+    public boolean isInventoryFull() {
         int emptySlots = 0;
         for (int i = 0; i < lumberInventory.getSlots(); i++) {
             if (lumberInventory.getStackInSlot(i) == null) emptySlots++;

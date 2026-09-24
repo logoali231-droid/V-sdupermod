@@ -1,13 +1,9 @@
 package com.dupermod.proxy;
 
-import com.dupermod.entity.EntityCooler;
-import com.dupermod.entity.EntityFactorySlime;
-import com.dupermod.entity.EntityFarmer;
-import com.dupermod.entity.EntityFighter;
-import com.dupermod.entity.EntityLumberjack;
 import com.dupermod.entity.EntityMiner;
-import com.dupermod.entity.EntitySieve;
-import com.dupermod.client.render.RenderCustomSlime; // Ajuste o pacote do seu Render se necessário
+import com.dupermod.entity.EntityLumberjack;
+import com.dupermod.entity.EntityFactorySlime;
+import com.dupermod.client.render.RenderCustomSlime;
 
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.event.FMLInitializationEvent;
@@ -20,14 +16,15 @@ public class ClientProxy extends CommonProxy {
     public void preInit(FMLPreInitializationEvent event) {
         super.preInit(event);
 
-        // Registra os Renderers de todas as entidades customizadas
-        RenderingRegistry.registerEntityRenderingHandler(EntityMiner.class, RenderCustomSlime::new);
-        RenderingRegistry.registerEntityRenderingHandler(EntityLumberjack.class, RenderCustomSlime::new);
-        RenderingRegistry.registerEntityRenderingHandler(EntityFarmer.class, RenderCustomSlime::new);
-        RenderingRegistry.registerEntityRenderingHandler(EntityFighter.class, RenderCustomSlime::new);
-        RenderingRegistry.registerEntityRenderingHandler(EntityCooler.class, RenderCustomSlime::new);
-        RenderingRegistry.registerEntityRenderingHandler(EntityFactorySlime.class, RenderCustomSlime::new);
-        RenderingRegistry.registerEntityRenderingHandler(EntitySieve.class, RenderCustomSlime::new);
+        // Registra apenas as entidades existentes passando os parâmetros necessários do RenderCustomSlime
+        RenderingRegistry.registerEntityRenderingHandler(EntityMiner.class,
+                manager -> new RenderCustomSlime(manager, 1.0F, 1.0F, 1.0F));
+
+        RenderingRegistry.registerEntityRenderingHandler(EntityLumberjack.class,
+                manager -> new RenderCustomSlime(manager, 1.0F, 1.0F, 1.0F));
+
+        RenderingRegistry.registerEntityRenderingHandler(EntityFactorySlime.class,
+                manager -> new RenderCustomSlime(manager, 1.0F, 1.0F, 1.0F));
     }
 
     @Override

@@ -1,21 +1,43 @@
 package com.dupermod.init;
 
 import com.dupermod.DuperMod;
-import com.dupermod.entity.EntityFarmer;
-import com.dupermod.entity.EntityFighter;
+import com.dupermod.entity.EntityFactorySlime;
 import com.dupermod.entity.EntityLumberjack;
-import com.dupermod.entity.EntityCooler;
 import com.dupermod.entity.EntityMiner;
+import com.dupermod.entity.EntitySieve;
+import net.minecraft.entity.Entity;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.common.registry.EntityRegistry;
 
 public class ModEntities {
 
-    public static void init() {
-        int id = 1;
-        EntityRegistry.registerModEntity(EntityLumberjack.class, "LumberjackSlime", id++, DuperMod.instance, 64, 1, true, 0x00FF00, 0x8B4513);
-        EntityRegistry.registerModEntity(EntityFarmer.class, "FarmerSlime", id++, DuperMod.instance, 64, 1, true, 0x00FF00, 0xFFFF00);
-        EntityRegistry.registerModEntity(EntityFighter.class, "FighterSlime", id++, DuperMod.instance, 64, 1, true, 0x00FF00, 0xFF0000);
-        EntityRegistry.registerModEntity(EntityCooler.class, "CoolerSlime", id++, DuperMod.instance, 64, 1, true, 0xFFFFFF, 0xE0FFFF);
-        EntityRegistry.registerModEntity(EntityMiner.class, "MinerSlime", id++, DuperMod.instance, 64, 1, true, 0x800080, 0x4B0082);
+    private static int entityId = 0;
+
+    public static void registerEntities() {
+        // EntityClass, Registry Name, Cor Primária do Ovo, Cor das Pintas do Ovo
+
+        // Minerador: Ovo Cinza Escuro com Pintas Douradas
+        registerSlime(EntityMiner.class, "miner_slime", 0x3A3A3A, 0xF1C40F);
+
+        // Lenhador: Ovo Marrom Madeira com Pintas Verdes
+        registerSlime(EntityLumberjack.class, "lumberjack_slime", 0x5C4033, 0x2ECC71);
+
+        // Factory Slime: Ovo Laranja Industrial com Pintas Cinza Metálico
+        registerSlime(EntityFactorySlime.class, "factory_slime", 0xE67E22, 0x7F8C8D);
+
+        // Sieve Slime: Ovo Amarelo Areia com Pintas Brancas
+        registerSlime(EntitySieve.class, "sieve_slime", 0xF39C12, 0xECF0F1);
+    }
+
+    private static void registerSlime(Class<? extends Entity> entityClass, String name, int primaryEggColor, int secondaryEggColor) {
+        EntityRegistry.registerModEntity(
+                new ResourceLocation(DuperMod.MODID, name),
+                entityClass,
+                name,
+                ++entityId,
+                DuperMod.instance,
+                64, 1, true,
+                primaryEggColor, secondaryEggColor
+        );
     }
 }

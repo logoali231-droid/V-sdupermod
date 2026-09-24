@@ -17,6 +17,25 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 
 public class ClientProxy extends CommonProxy {
 
+        @Override
+        public void registerRenders() {
+            // 1. Minerador: Cinza Metalizado / Pedra (R: 0.35, G: 0.35, B: 0.4)
+            RenderingRegistry.registerEntityRenderingHandler(EntityMiner.class,
+                    rm -> new RenderCustomSlime(rm, 0.35F, 0.35F, 0.40F));
+
+            // 2. Lenhador: Marrom/Verde Madeira (R: 0.45, G: 0.25, B: 0.1F)
+            RenderingRegistry.registerEntityRenderingHandler(EntityLumberjack.class,
+                    rm -> new RenderCustomSlime(rm, 0.45F, 0.25F, 0.10F));
+
+            // 3. Factory Slime: Laranja Industrial / Cobre (R: 0.9F, G: 0.45F, B: 0.1F)
+            RenderingRegistry.registerEntityRenderingHandler(EntityFactorySlime.class,
+                    rm -> new RenderCustomSlime(rm, 0.90F, 0.45F, 0.10F));
+
+            // 4. Sieve Slime: Amarelo Areia (R: 0.95F, G: 0.85F, B: 0.3F)
+            RenderingRegistry.registerEntityRenderingHandler(EntitySieve.class,
+                    rm -> new RenderCustomSlime(rm, 0.95F, 0.85F, 0.30F));
+        }
+    }
     @Override
     public void preInit(FMLPreInitializationEvent event) {
         super.preInit(event);

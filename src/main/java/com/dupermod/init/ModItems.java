@@ -17,8 +17,6 @@ import com.dupermod.entity.EntityCooler;
 
 public class ModItems {
 
-
-
     // Arrefecimento
     public static Item coolingUpgrade;
     public static Item coolingHelmet;
@@ -34,12 +32,12 @@ public class ModItems {
     public static Item summonerFarmer;
     public static Item summonerFighter;
     public static Item summonerMiner;
+    public static Item summonerCooler;
 
     // Upgrades do Lenhador
     public static Item upgradeLogMultiplier;
     public static Item upgradeCharcoal;
     public static Item upgradeSpeed;
-    public static Item summonerCooler;
 
     public static void init() {
         // Upgrade de Arrefecimento
@@ -57,10 +55,11 @@ public class ModItems {
         // Anel de Acessibilidade
         accessibilityRing = new ItemAccessibilityRing();
         registerItem(accessibilityRing, "accessibility_ring");
-        //minerslime
+
+        // Invocadores
         summonerMiner = new ItemAllySummoner("miner");
         registerItem(summonerMiner, "summoner_miner");
-        //coolerslime
+
         summonerCooler = new ItemAllySummoner("cooler");
         registerItem(summonerCooler, "summoner_cooler");
 
@@ -79,7 +78,6 @@ public class ModItems {
         summonerLumberjack = new ItemAllySummoner("lumberjack");
         summonerFarmer = new ItemAllySummoner("farmer");
         summonerFighter = new ItemAllySummoner("fighter");
-
 
         registerItem(summonerLumberjack, "summoner_lumberjack");
         registerItem(summonerFarmer, "summoner_farmer");
@@ -147,6 +145,7 @@ public class ModItems {
                 " S ", " X ", " P ",
                 'S', Items.SUGAR, 'X', Items.SLIME_BALL, 'P', Items.FEATHER
         );
+
         GameRegistry.addRecipe(new ItemStack(summonerCooler),
                 " I ", " S ", "   ",
                 'I', Blocks.PACKED_ICE, 'S', Items.SLIME_BALL
@@ -155,10 +154,6 @@ public class ModItems {
         GameRegistry.addRecipe(new ItemStack(summonerMiner),
                 " P ", " S ", "   ",
                 'P', Items.IRON_PICKAXE, 'S', Items.SLIME_BALL
-        );
-        GameRegistry.addRecipe(new ItemStack(summonerMiner),
-                " P ", " S ", "   ",
-                'P', net.minecraft.init.Items.IRON_PICKAXE, 'S', net.minecraft.init.Items.SLIME_BALL
         );
 
         // Receitas das Armaduras de Arrefecimento

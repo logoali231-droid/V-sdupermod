@@ -1,30 +1,44 @@
 package com.dupermod.entity;
 
 import com.dupermod.init.ModItems;
+import net.minecraft.block.BlockLeaves;
 import net.minecraft.block.BlockLog;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraft.world.World;
+import net.minecraftforge.items.CapabilityItemHandler;
+import net.minecraftforge.items.IItemHandler;
+import net.minecraftforge.items.ItemStackHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class EntityLumberjack extends EntityAllyBase {
 
     private int workTimer = 0;
+    private BlockPos targetTree = null;
 
-    // Estados dos Upgrades
+    private enum State { GATHERING, DELIVERING }
+    private State currentState = State.GATHERING;
+
     public boolean hasMultiplierUpgrade = false;
     public boolean hasCharcoalUpgrade = false;
     public boolean hasSpeedUpgrade = false;
+    public boolean hasBackpackUpgrade = false;
+
+    public ItemStackHandler lumberInventory = new ItemStackHandler(9); //[cite: 2]
 
     public EntityLumberjack(World worldIn) {
         super(worldIn);
@@ -34,136 +48,240 @@ public class EntityLumberjack extends EntityAllyBase {
     public void onUpdate() {
         super.onUpdate();
 
-        if (this.worldObj.isRemote || this.isRecovering) return;
+        if (this.worldObj.isRemote || this.isRecovering || this.forceMoveTarget != null) return;
+
+        if (this.outputPos != null && isInventoryFull() && currentState == State.GATHERING) {
+            currentState = State.DELIVERING;
+            targetTree = null;
+        }
+
+        if (currentState == State.DELIVERING) {
+            this.getNavigator().tryMoveToXYZ(this.outputPos.getX(), this.outputPos.getY(), this.outputPos.getZ(), 1.0D);
+            if (this.getDistanceSqToCenter(this.outputPos) < 4.0D) {
+                dumpToOutputChest();
+                currentState = State.GATHERING;
+            }
+            return;
+        }
 
         workTimer++;
-        // Se tiver upgrade de velocidade, trabalha a cada 15 ticks (0.75s) em vez de 40 ticks (2s)
         int maxDelay = hasSpeedUpgrade ? 15 : 40;
 
         if (workTimer >= maxDelay) {
             workTimer = 0;
-            findAndCutTree();
+
+            if (targetTree == null) {
+                targetTree = findNearestTree(8 + (this.getAllyLevel() - 1) * 3);
+            }
+
+            if (targetTree != null) {
+                if (this.getDistanceSq(targetTree) > 4.0D) {
+                    this.getNavigator().tryMoveToXYZ(targetTree.getX(), targetTree.getY(), targetTree.getZ(), 1.0D);
+                } else {
+                    cutTree(targetTree);
+                    targetTree = null;
+                }
+            } else if (this.outputPos != null && hasItems()) {
+                currentState = State.DELIVERING;
+            }
         }
     }
 
-    private void findAndCutTree() {
-        BlockPos pos = new BlockPos(this);
-        int radius = 8 + (this.getAllyLevel() - 1) * 3;
+    private BlockPos findNearestTree(int radius) {
+        // Nova Mecânica: Procura centrado na Work Area
+        BlockPos searchCenter = (this.workAreaCenter != null) ? this.workAreaCenter : new BlockPos(this);
+        BlockPos closestTree = null;
+        double closestDistance = Double.MAX_VALUE;
 
-        for (int x = -radius; x <= radius; x++) {
-            for (int z = -radius; z <= radius; z++) {
-                for (int y = -2; y <= 5; y++) {
-                    BlockPos targetPos = pos.add(x, y, z);
-                    IBlockState state = worldObj.getBlockState(targetPos);
+        BlockPos startPos = searchCenter.add(-radius, -2, -radius);
+        BlockPos endPos = searchCenter.add(radius, 5, radius);
 
-                    if (state.getBlock() instanceof BlockLog) {
-                        List<BlockPos> treeBlocks = new ArrayList<>();
-                        scanTree(targetPos, treeBlocks);
-
-                        for (BlockPos logPos : treeBlocks) {
-                            IBlockState logState = worldObj.getBlockState(logPos);
-                            List<ItemStack> drops = logState.getBlock().getDrops(worldObj, logPos, logState, 0);
-                            worldObj.setBlockToAir(logPos);
-
-                            for (ItemStack drop : drops) {
-                                if (drop == null) continue;
-
-                                // UPGRADE 1: Multiplicador de Madeira (x2)
-                                if (hasMultiplierUpgrade) {
-                                    drop.stackSize *= 2;
-                                }
-
-                                // UPGRADE 2: Conversor de Carvão Vegetal (50% Tronco / 50% Carvão)
-                                if (hasCharcoalUpgrade) {
-                                    int total = drop.stackSize;
-                                    int charcoalAmount = total / 2;
-                                    int logAmount = total - charcoalAmount;
-
-                                    if (logAmount > 0) {
-                                        ItemStack logs = drop.copy();
-                                        logs.stackSize = logAmount;
-                                        ItemHandlerHelper.insertItemStacked(this.inventory, logs, false);
-                                    }
-
-                                    if (charcoalAmount > 0) {
-                                        // No Minecraft 1.10.2, Charcoal é Items.COAL com metadata 1
-                                        ItemStack charcoal = new ItemStack(Items.COAL, charcoalAmount, 1);
-                                        ItemHandlerHelper.insertItemStacked(this.inventory, charcoal, false);
-                                    }
-                                } else {
-                                    ItemHandlerHelper.insertItemStacked(this.inventory, drop, false);
-                                }
-                            }
-                        }
-                        return;
+        for (BlockPos pos : BlockPos.getAllInBox(startPos, endPos)) {
+            IBlockState state = this.worldObj.getBlockState(pos);
+            if (state.getBlock() instanceof BlockLog) { //[cite: 2]
+                if (hasLeavesAbove(pos, 7)) {
+                    double distance = searchCenter.distanceSq(pos);
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        closestTree = pos;
                     }
+                }
+            }
+        }
+        return closestTree;
+    }
+
+    private boolean hasLeavesAbove(BlockPos logPos, int maxHeight) {
+        for (int i = 1; i <= maxHeight; i++) {
+            BlockPos checkPos = logPos.up(i);
+            IBlockState state = this.worldObj.getBlockState(checkPos);
+            if (state.getBlock() instanceof BlockLeaves) return true; //[cite: 2]
+        }
+        return false;
+    }
+
+    private void cutTree(BlockPos startPos) {
+        List<BlockPos> treeBlocks = new ArrayList<>();
+        scanTree(startPos, treeBlocks);
+
+        for (BlockPos logPos : treeBlocks) {
+            IBlockState logState = worldObj.getBlockState(logPos);
+            List<ItemStack> drops = logState.getBlock().getDrops(worldObj, logPos, logState, 0);
+            worldObj.setBlockToAir(logPos);
+
+            for (ItemStack drop : drops) {
+                if (drop == null) continue;
+
+                if (hasMultiplierUpgrade) drop.stackSize *= 2; //[cite: 2]
+
+                if (hasCharcoalUpgrade) {
+                    int total = drop.stackSize;
+                    int charcoalAmount = total / 2;
+                    int logAmount = total - charcoalAmount;
+
+                    if (logAmount > 0) {
+                        ItemStack logs = drop.copy();
+                        logs.stackSize = logAmount;
+                        storeOrDropItem(logs);
+                    }
+                    if (charcoalAmount > 0) {
+                        ItemStack charcoal = new ItemStack(Items.COAL, charcoalAmount, 1);
+                        storeOrDropItem(charcoal);
+                    }
+                } else {
+                    storeOrDropItem(drop);
                 }
             }
         }
     }
 
     private void scanTree(BlockPos pos, List<BlockPos> treeBlocks) {
-        if (treeBlocks.size() >= 64) return;
+        if (treeBlocks.size() >= 128) return;
         if (worldObj.getBlockState(pos).getBlock() instanceof BlockLog && !treeBlocks.contains(pos)) {
             treeBlocks.add(pos);
             for (int x = -1; x <= 1; x++) {
                 for (int y = 0; y <= 1; y++) {
                     for (int z = -1; z <= 1; z++) {
-                        scanTree(pos.add(x, y, z), treeBlocks);
+                        scanTree(pos.add(x, y, z), treeBlocks); //[cite: 2]
                     }
                 }
             }
         }
     }
 
-    // Aplicação de Upgrades via Clique com o Botão Direito
+    private void storeOrDropItem(ItemStack stack) {
+        ItemStack remainder = ItemHandlerHelper.insertItemStacked(lumberInventory, stack, false);
+        if (remainder != null && remainder.stackSize > 0) {
+            EntityItem entityItem = new EntityItem(worldObj, this.posX, this.posY, this.posZ, remainder);
+            worldObj.spawnEntityInWorld(entityItem);
+        }
+    }
+
+    private boolean isInventoryFull() {
+        int emptySlots = 0;
+        for (int i = 0; i < lumberInventory.getSlots(); i++) {
+            if (lumberInventory.getStackInSlot(i) == null) emptySlots++;
+        }
+        return emptySlots <= 1;
+    }
+
+    private boolean hasItems() {
+        for (int i = 0; i < lumberInventory.getSlots(); i++) {
+            if (lumberInventory.getStackInSlot(i) != null) return true;
+        }
+        return false;
+    }
+
+    private void dumpToOutputChest() {
+        TileEntity te = worldObj.getTileEntity(this.outputPos);
+        if (te != null && te.hasCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, EnumFacing.UP)) {
+            IItemHandler chestInv = te.getCapability(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, EnumFacing.UP);
+            for (int i = 0; i < lumberInventory.getSlots(); i++) {
+                ItemStack stack = lumberInventory.getStackInSlot(i);
+                if (stack != null) {
+                    ItemStack remainder = ItemHandlerHelper.insertItemStacked(chestInv, stack, false);
+                    lumberInventory.setStackInSlot(i, remainder);
+                }
+            }
+            this.playSound(net.minecraft.init.SoundEvents.ENTITY_ITEM_PICKUP, 1.0F, 1.0F);
+        }
+    }
+
+    private void dumpInventoryToPlayer() {
+        boolean hasItems = false;
+        for (int i = 0; i < lumberInventory.getSlots(); i++) {
+            ItemStack stack = lumberInventory.getStackInSlot(i);
+            if (stack != null && stack.stackSize > 0) {
+                EntityItem entityItem = new EntityItem(worldObj, this.posX, this.posY, this.posZ, stack.copy());
+                worldObj.spawnEntityInWorld(entityItem);
+                lumberInventory.setStackInSlot(i, null);
+                hasItems = true;
+            }
+        }
+        if (hasItems) this.playSound(net.minecraft.init.SoundEvents.ENTITY_ITEM_PICKUP, 1.0F, 1.0F); //[cite: 2]
+    }
+
+    private void expandInventory() {
+        ItemStackHandler newInv = new ItemStackHandler(27);
+        for (int i = 0; i < lumberInventory.getSlots(); i++) {
+            newInv.setStackInSlot(i, lumberInventory.getStackInSlot(i));
+        }
+        lumberInventory = newInv;
+    }
+
     @Override
     public boolean processInteract(EntityPlayer player, EnumHand hand, ItemStack stack) {
-        if (stack != null) {
-            if (stack.getItem() == ModItems.upgradeLogMultiplier && !hasMultiplierUpgrade) {
-                if (!worldObj.isRemote) {
+        if (!worldObj.isRemote) {
+            if (player.isSneaking() && stack == null) {
+                dumpInventoryToPlayer();
+                player.addChatMessage(new TextComponentString("§eLenhador: Aqui estão meus recursos!"));
+                return true;
+            }
+
+            if (stack != null) {
+                if (stack.getItem() == Item.getItemFromBlock(Blocks.CHEST) && !hasBackpackUpgrade) {
+                    hasBackpackUpgrade = true;
+                    expandInventory();
+                    consumeItem(player, stack);
+                    player.addChatMessage(new TextComponentString("§aUpgrade: Mochila (Inventário Expandido)!")); //[cite: 2]
+                    return true;
+                }
+                if (stack.getItem() == ModItems.upgradeLogMultiplier && !hasMultiplierUpgrade) {
                     hasMultiplierUpgrade = true;
                     consumeItem(player, stack);
-                    player.addChatMessage(new TextComponentString("§aUpgrade Aplicado: Multiplicador de Madeira!"));
+                    player.addChatMessage(new TextComponentString("§aUpgrade: Multiplicador de Madeira!"));
+                    return true;
                 }
-                return true;
-            }
-
-            if (stack.getItem() == ModItems.upgradeCharcoal && !hasCharcoalUpgrade) {
-                if (!worldObj.isRemote) {
+                if (stack.getItem() == ModItems.upgradeCharcoal && !hasCharcoalUpgrade) {
                     hasCharcoalUpgrade = true;
                     consumeItem(player, stack);
-                    player.addChatMessage(new TextComponentString("§aUpgrade Aplicado: Conversor de Carvão Vegetal!"));
+                    player.addChatMessage(new TextComponentString("§aUpgrade: Conversor de Carvão!"));
+                    return true;
                 }
-                return true;
-            }
-
-            if (stack.getItem() == ModItems.upgradeSpeed && !hasSpeedUpgrade) {
-                if (!worldObj.isRemote) {
+                if (stack.getItem() == ModItems.upgradeSpeed && !hasSpeedUpgrade) {
                     hasSpeedUpgrade = true;
-                    this.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.35D); // Aumenta velocidade de movimento
+                    this.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.35D);
                     consumeItem(player, stack);
-                    player.addChatMessage(new TextComponentString("§aUpgrade Aplicado: Velocidade Aumentada!"));
+                    player.addChatMessage(new TextComponentString("§aUpgrade: Velocidade!"));
+                    return true;
                 }
-                return true;
             }
         }
         return super.processInteract(player, hand, stack);
     }
 
     private void consumeItem(EntityPlayer player, ItemStack stack) {
-        if (!player.capabilities.isCreativeMode) {
-            stack.stackSize--;
-        }
+        if (!player.capabilities.isCreativeMode) stack.stackSize--;
     }
 
-    // Guardar e Carregar Upgrades do NBT (Persistência ao reiniciar o mundo)
     @Override
     public void writeEntityToNBT(NBTTagCompound compound) {
         super.writeEntityToNBT(compound);
         compound.setBoolean("UpgradeMultiplier", hasMultiplierUpgrade);
         compound.setBoolean("UpgradeCharcoal", hasCharcoalUpgrade);
         compound.setBoolean("UpgradeSpeed", hasSpeedUpgrade);
+        compound.setBoolean("UpgradeBackpack", hasBackpackUpgrade);
+        compound.setTag("LumberInventory", lumberInventory.serializeNBT());
     }
 
     @Override
@@ -172,9 +290,10 @@ public class EntityLumberjack extends EntityAllyBase {
         this.hasMultiplierUpgrade = compound.getBoolean("UpgradeMultiplier");
         this.hasCharcoalUpgrade = compound.getBoolean("UpgradeCharcoal");
         this.hasSpeedUpgrade = compound.getBoolean("UpgradeSpeed");
+        this.hasBackpackUpgrade = compound.getBoolean("UpgradeBackpack");
 
-        if (this.hasSpeedUpgrade) {
-            this.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.35D);
-        }
+        if (this.hasBackpackUpgrade) this.lumberInventory = new ItemStackHandler(27);
+        if (compound.hasKey("LumberInventory")) this.lumberInventory.deserializeNBT(compound.getCompoundTag("LumberInventory"));
+        if (this.hasSpeedUpgrade) this.getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.35D);
     }
 }

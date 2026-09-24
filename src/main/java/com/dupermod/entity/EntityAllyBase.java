@@ -22,6 +22,7 @@ import net.minecraftforge.items.CapabilityItemHandler;
 import net.minecraftforge.items.IItemHandler;
 import net.minecraftforge.items.ItemHandlerHelper;
 import net.minecraftforge.items.ItemStackHandler;
+import com.dupermod.items.ItemCommandWand.WandMode;
 
 import java.util.UUID;
 
@@ -31,6 +32,11 @@ public abstract class EntityAllyBase extends EntityCreature {
     protected boolean isRecovering = false;
     public ItemStackHandler inventory = new ItemStackHandler(18);
 
+    public BlockPos inputPos = null;
+    public BlockPos outputPos = null;
+    public BlockPos workAreaCenter = null;
+    public BlockPos forceMoveTarget = null;
+
     // Sistema de Baú e Nível de Fusão
     private BlockPos boundChestPos = null;
     private int allyLevel = 1; // Nível 1 a 3
@@ -39,6 +45,29 @@ public abstract class EntityAllyBase extends EntityCreature {
         super(worldIn);
         this.updateAllySize();
     }
+
+    public void receiveWandCommand(WandMode mode, BlockPos pos, EntityPlayer player) {
+        switch (mode) {
+            case SET_INPUT:
+                this.inputPos = pos;
+                player.addChatMessage(new TextComponentString("§a[Slime] Baú de Entrada configurado!"));
+                break;
+            case SET_OUTPUT:
+                this.outputPos = pos;
+                player.addChatMessage(new TextComponentString("§a[Slime] Baú de Saída configurado!"));
+                break;
+            case SET_WORKAREA:
+                this.workAreaCenter = pos;
+                player.addChatMessage(new TextComponentString("§a[Slime] Área de Trabalho centralizada configurada!"));
+                break;
+            case MOVE:
+                this.forceMoveTarget = pos;
+                player.addChatMessage(new TextComponentString("§a[Slime] Indo para o local!"));
+                break;
+        }
+    }
+
+
 
     @Override
     protected void initEntityAI() {
@@ -142,6 +171,15 @@ public abstract class EntityAllyBase extends EntityCreature {
                 unloadToChest();
             }
         }
+
+        if (!worldObj.isRemote && forceMoveTarget != null) {
+            this.getNavigator().tryMoveToXYZ(forceMoveTarget.getX(), forceMoveTarget.getY(), forceMoveTarget.getZ(), 1.2D);
+
+            // Se chegou a 2 blocos de distância, limpa o comando de movimento
+            if (this.getDistanceSqToCenter(forceMoveTarget) < 4.0D) {
+                forceMoveTarget = null;
+            }
+        }
     }
 
     // --- INTERAÇÕES DO JOGADOR ---
@@ -211,6 +249,10 @@ public abstract class EntityAllyBase extends EntityCreature {
     @Override
     public void writeEntityToNBT(NBTTagCompound compound) {
         super.writeEntityToNBT(compound);
+        if (inputPos != null) compound.setLong("UnivInputPos", inputPos.toLong());
+        if (outputPos != null) compound.setLong("UnivOutputPos", outputPos.toLong());
+        if (workAreaCenter != null) compound.setLong("UnivWorkArea", workAreaCenter.toLong());
+    }
         if (ownerId != null) compound.setString("OwnerUUID", ownerId.toString());
         compound.setTag("Inventory", inventory.serializeNBT());
         compound.setInteger("AllyLevel", allyLevel);
@@ -220,6 +262,8 @@ public abstract class EntityAllyBase extends EntityCreature {
             compound.setInteger("ChestY", boundChestPos.getY());
             compound.setInteger("ChestZ", boundChestPos.getZ());
         }
+
+
     }
 
     @Override
@@ -227,6 +271,9 @@ public abstract class EntityAllyBase extends EntityCreature {
         super.readEntityFromNBT(compound);
         if (compound.hasKey("OwnerUUID")) ownerId = UUID.fromString(compound.getString("OwnerUUID"));
         if (compound.hasKey("Inventory")) inventory.deserializeNBT(compound.getCompoundTag("Inventory"));
+        if (compound.hasKey("UnivInputPos")) inputPos = BlockPos.fromLong(compound.getLong("UnivInputPos"));
+        if (compound.hasKey("UnivOutputPos")) outputPos = BlockPos.fromLong(compound.getLong("UnivOutputPos"));
+        if (compound.hasKey("UnivWorkArea")) workAreaCenter = BlockPos.fromLong(compound.getLong("UnivWorkArea"));
 
         this.allyLevel = compound.getInteger("AllyLevel");
         if (this.allyLevel < 1) this.allyLevel = 1;

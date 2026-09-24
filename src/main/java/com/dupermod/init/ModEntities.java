@@ -1,9 +1,6 @@
 package com.dupermod.init;
 
-import com.dupermod.DuperMod;
-import com.dupermod.entity.EntityMiner;
-import com.dupermod.entity.EntityLumberjack;
-import com.dupermod.entity.EntityFactorySlime;
+import com.dupermod.entity.*;
 
 import net.minecraft.entity.Entity;
 import net.minecraftforge.fml.common.registry.EntityRegistry;
